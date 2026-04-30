@@ -1,0 +1,20 @@
+{
+  "name": "photograph-workflow",
+  "version": "1.0.0",
+  "description": "A workflow tool for managing camera RAW files — rename, categorize, and archive",
+  "homepage": "https://github.com/henryzhuhr/photograph-workflow#readme",
+  "bugs": {
+    "url": "https://github.com/henryzhuhr/photograph-workflow/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/henryzhuhr/photograph-workflow.git"
+  },
+  "license": "GPL-3.0",
+  "author": "henryzhuhr <henry.zhuhr@icloud.com>",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
