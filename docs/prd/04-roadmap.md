@@ -27,19 +27,21 @@ MVP 应聚焦在 Lightroom 前后的文件管理自动化。
 - 图片内容识别。
 - 自动修图。
 
-## 推荐命令形态
+## 推荐执行形态
 
-后续实现可以先做 CLI。
+后续实现先做 uv 管理的 Python 脚本。MVP 不要求安装成系统命令，只要能用 `uv run python ...` 直接执行即可。
 
 示例：
 
 ```text
-photograph-workflow scan ./Photos/2026-04-30_Tokyo-Street
-photograph-workflow rename ./Photos/2026-04-30_Tokyo-Street --template "{project_date}_{folder}_{seq:04}" --dry-run
-photograph-workflow rename ./Photos/2026-04-30_Tokyo-Street --template "{project_date}_{folder}_{seq:04}"
-photograph-workflow archive ./Photos/2026-04-30_Tokyo-Street --output /Volumes/Archive/Photos --dry-run
-photograph-workflow archive ./Photos/2026-04-30_Tokyo-Street --output /Volumes/Archive/Photos
+uv run python scripts/scan.py ./Photos/20260501-「旅游」重庆
+uv run python scripts/rename.py ./Photos/20260501-「旅游」重庆 --template "{folder}-{timestamp:HHMMSS}_{original}" --dry-run
+uv run python scripts/rename.py ./Photos/20260501-「旅游」重庆 --template "{folder}-{timestamp:HHMMSS}_{original}"
+uv run python scripts/archive.py ./Photos/20260501-「旅游」重庆 --output /Volumes/Archive/Photos --dry-run
+uv run python scripts/archive.py ./Photos/20260501-「旅游」重庆 --output /Volumes/Archive/Photos
 ```
+
+如果脚本稳定后需要更顺手的入口，再考虑在 `pyproject.toml` 中增加 `project.scripts`，把脚本包装成 `photograph-workflow` 命令。
 
 ## 配置文件
 
@@ -63,7 +65,9 @@ workflow.json
 {
   "rawExtensions": [".arw", ".cr3", ".nef", ".dng"],
   "sidecarExtensions": [".xmp", ".jpg", ".jpeg"],
-  "renameTemplate": "{project_date}_{folder}_{seq:04}",
+  "renameTemplate": "{folder}-{timestamp:HHMMSS}_{original}",
+  "timestampSource": "metadata",
+  "onNameConflict": "fail",
   "sequenceScope": "per-directory",
   "exportDirs": ["exports"],
   "archive": {
@@ -72,6 +76,34 @@ workflow.json
   }
 }
 ```
+
+## 外部依赖
+
+MVP 使用 uv 管理 Python 运行环境，并依赖 ExifTool 读取 RAW/DNG 元数据。
+
+依赖策略：
+
+- 脚本启动时检测 `exiftool` 可执行文件。
+- `scan` 可以在缺少 ExifTool 时降级，只输出文件数量和扩展名统计。
+- `rename --dry-run` 和实际重命名必须要求 ExifTool 可用，因为默认命名模板依赖拍摄时间。
+- 只读调用 ExifTool，不用 ExifTool 写入 RAW/DNG。
+- 重命名使用文件系统操作，不改写照片内容。
+- 文档中提供 macOS、Windows、Linux 的安装说明。
+- Python 依赖通过 `pyproject.toml` 和 `uv.lock` 管理。
+
+实现上不直接依赖某个只支持 JPEG 的 EXIF 包。Python 代码应通过一个 `MetadataReader` adapter 调用 ExifTool JSON 输出，避免把第三方命令调用散落在重命名逻辑里。
+
+Python 标准库应覆盖大部分 MVP 能力：
+
+- `argparse`：脚本参数解析。
+- `pathlib`：路径处理。
+- `dataclasses`：内部计划对象。
+- `json`：配置、操作记录和 ExifTool JSON 解析。
+- `subprocess`：调用 ExifTool。
+- `zipfile`：ZIP 归档。
+- `logging`：执行日志。
+
+MVP 默认不引入重量级运行时依赖。测试依赖可以使用 `pytest`。
 
 ## 非功能需求
 
@@ -132,8 +164,8 @@ workflow.json
 
 ### V1
 
-- 完成 CLI。
-- 完成 scan、rename、archive 三个命令。
+- 完成 uv 项目配置。
+- 完成 `scripts/scan.py`、`scripts/rename.py`、`scripts/archive.py`。
 - 完成 JSON 操作记录。
 - 提供基础测试覆盖。
 
@@ -142,7 +174,8 @@ workflow.json
 - 增加交互式 TUI 或简单桌面界面。
 - 增加自动从目录名解析项目日期和项目名称。
 - 增加归档 manifest 和 checksum。
-- 增加 rollback 命令。
+- 增加 `scripts/rollback.py`。
+- 可选增加 `project.scripts`，提供系统级命令入口。
 
 ### V3
 
@@ -150,4 +183,3 @@ workflow.json
 - 支持自动分类建议。
 - 支持读取 Lightroom 导出结果并做更完整校验。
 - 支持 NAS、外部硬盘和云盘归档策略。
-

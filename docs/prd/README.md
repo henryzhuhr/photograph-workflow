@@ -19,10 +19,14 @@
 - [RAW 文件重命名需求](./02-raw-renaming.md)
 - [Lightroom 导出与归档需求](./03-export-archive.md)
 - [产品范围、MVP 与后续路线](./04-roadmap.md)
+- [标准目录样例与命名策略](./05-standard-directory.md)
+- [Python 技术架构设计](./06-python-architecture.md)
 
 ## 产品目标
 
 本项目要解决的是摄影后期前后的“文件管理可靠性”问题，而不是替代 Lightroom 的修图能力。
+
+实现形态明确为 uv 管理的 Python 脚本项目，优先服务本地文件扫描、重命名预览、重命名执行和归档。MVP 不要求安装成系统 CLI，用户可以直接执行 `.py` 脚本。
 
 核心目标：
 
@@ -80,4 +84,3 @@ Photos/
 - 不破坏 Lightroom：进入 Lightroom 之前完成路径和文件名稳定化。
 - 伴随文件同步：同名 `.xmp`、`.jpg`、`.jpeg`、`.mov` 等伴随文件要有明确策略。
 - 跨相机兼容：RAW 扩展名不能只假设一种格式。
-

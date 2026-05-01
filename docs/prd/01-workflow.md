@@ -46,7 +46,7 @@ Family/2026-04-30_Birthday/
 
 ### 3. RAW 文件重命名
 
-用户在分类完成后运行重命名流程。工具扫描目录内的 RAW 文件，并根据模板生成新文件名。
+用户在分类完成后运行重命名流程。工具从项目根目录递归扫描 RAW、DNG 等照片源文件，并根据照片文件所在目录名和拍摄时间生成新文件名。
 
 推荐时机：
 
@@ -59,14 +59,14 @@ Family/2026-04-30_Birthday/
 示例模板：
 
 ```text
-{project_date}_{folder}_{seq:04}
+{folder}-{timestamp:HHMMSS}_{original}
 ```
 
 生成结果：
 
 ```text
-20260430_Tokyo-Street_0001.ARW
-20260430_Tokyo-Street_0002.ARW
+20260501-重庆人民大礼堂-184126_DSC09907.ARW
+20260501-重庆人民大礼堂-184127_DSC09908.ARW
 ```
 
 ### 4. Lightroom 修图
@@ -144,4 +144,3 @@ imported -> classified -> renamed -> editing -> exported -> archived
 - 如果目标归档包已存在，默认不覆盖。
 - 如果同名 XMP 文件存在，必须跟随 RAW 一起重命名。
 - 如果 Lightroom 已经导入过该目录，工具只能提示风险，不应假装可以无损处理。
-
