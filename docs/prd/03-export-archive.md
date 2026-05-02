@@ -1,56 +1,53 @@
-# Lightroom 导出与归档需求
+# Lightroom 边界与原始素材归档需求
 
 ## 目标
 
-在 Lightroom 修图和导出之后，对当前拍摄项目做可重复、可验证的压缩归档。归档不是简单压缩整个目录，而是要明确包含什么、排除什么、如何命名，以及如何确认归档成功。
+明确 Lightroom 导出后的成片不由工具管理，同时对 RAW/DNG 原始素材目录提供可重复、可验证的压缩归档能力。
 
 ## Lightroom 阶段边界
 
-MVP 不直接控制 Lightroom，也不读取 Lightroom catalog。
+当前版本不直接控制 Lightroom，也不读取 Lightroom catalog。
 
 工具负责：
 
 - 提醒用户在重命名完成后再导入 Lightroom。
-- 识别项目目录下的导出目录。
-- 在归档前检查导出目录是否存在。
-- 将导出结果纳入归档。
+- 管理 RAW/DNG 及其附属文件的命名一致性。
+- 可选地归档原始素材目录。
 
 工具不负责：
 
 - 自动套用 Lightroom 预设。
 - 自动评级、筛选或修图。
 - 直接写入 Lightroom catalog。
+- 指定 Lightroom 导出目录。
+- 检查 Lightroom 导出结果。
+- 移动、重命名、归档 Lightroom 导出后的成片。
+- 管理导入 Apple Photos 系统相册后的文件。
 
-## 导出目录约定
+## 导出边界
 
-推荐默认结构：
-
-```text
-exports/
-  full/
-  web/
-  selected/
-```
-
-用户也可以只使用：
+Lightroom 导出后的文件由用户自行处理。典型流程是：
 
 ```text
-exports/
+.
+└── Lightroom 导出成片
+    └── 用户直接导入 Apple Photos 系统相册
 ```
 
-产品要求：
+产品决策：
 
-- 支持配置导出目录名。
-- 支持多个导出子目录。
-- 如果导出目录不存在，归档前给出阻塞提示或允许用户手动确认跳过。
+- 不提供导出目录配置。
+- 不要求项目目录内存在 `exports/`。
+- 不把导出成片纳入归档包。
+- 不校验导出文件数量。
 
 ## 归档输入
 
 默认纳入归档：
 
-- RAW 文件目录。
-- Lightroom 导出的成片目录。
-- `workflow.json`。
+- RAW/DNG 原始照片文件。
+- 同名附属文件，例如 `.xmp`、`.acr`、机内直出 JPEG。
+- 每个照片目录下的 `.metadata.json`。
 - 用户手写的说明文件，例如 `README.md`、`notes.md`。
 
 默认排除：
@@ -87,7 +84,7 @@ exports/
 
 ## 归档位置
 
-MVP 支持两类位置：
+当前版本支持两类位置：
 
 - 项目目录内的 `archive/`。
 - 用户指定的外部归档目录，例如移动硬盘或 NAS 挂载路径。
@@ -109,7 +106,7 @@ MVP 支持两类位置：
 - 将纳入归档的总大小。
 - 被排除的文件数量。
 - RAW 文件数量。
-- 导出文件数量。
+- 附属文件数量。
 
 阻塞条件：
 
@@ -120,9 +117,8 @@ MVP 支持两类位置：
 
 警告条件：
 
-- 没有找到导出文件。
-- `workflow.json` 不存在。
-- 项目状态不是 `exported`。
+- 存在已重命名照片但对应目录缺少 `.metadata.json`。
+- 项目状态不是 `renamed` 或 `editing`。
 
 ## 归档后校验
 
@@ -140,28 +136,28 @@ MVP 支持两类位置：
 
 ## 操作记录
 
-归档完成后更新 `workflow.json`。
+归档完成后更新相关照片目录下的 `.metadata.json`。
 
 建议结构：
 
 ```json
 {
-  "projectStatus": "archived",
+  "status": "archived",
   "archive": {
-    "createdAt": "2026-04-30T22:00:00+08:00",
+    "created_at": "2026-04-30T22:00:00+08:00",
     "path": "archive/2026-04-30_Tokyo-Street_20260430.zip",
     "format": "zip",
-    "fileCount": 245,
-    "sizeBytes": 4294967296
+    "file_count": 245,
+    "size_bytes": 4294967296
   }
 }
 ```
 
 ## 验收标准
 
-- 用户可以指定项目目录、导出目录和归档输出位置。
+- 用户可以指定项目目录和归档输出位置。
 - 工具可以在压缩前展示归档计划。
 - 默认不会覆盖已有压缩包。
 - 压缩完成后可以确认归档包存在且内容数量符合计划。
-- `workflow.json` 会记录归档结果。
-
+- `.metadata.json` 会记录归档结果。
+- 工具不会读取、检查或归档 Lightroom 导出后的成片。
