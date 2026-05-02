@@ -217,7 +217,7 @@ exiftool -json -FileName -Directory -FileType -Make -Model -DateTimeOriginal -Cr
 示例：
 
 ```text
-DSC09907.ARW -> 20260501-大礼堂-184126_DSC09907.ARW
+DSC00000.ARW -> 20260101-上海东方明珠-080001_DSC00000.ARW
 ```
 
 处理流程：
@@ -290,4 +290,4 @@ DSC09907.ARW -> 20260501-大礼堂-184126_DSC09907.ARW
 
 - Sony `.ARW`：确认可以读取拍摄时间。
 - DJI `.DNG`：确认可以读取拍摄时间。
-- 当前重庆样例目录：按默认模板 dry-run 后目标名冲突数为 0。
+- 当前脱敏样例目录：按默认模板 dry-run 后目标名冲突数为 0。

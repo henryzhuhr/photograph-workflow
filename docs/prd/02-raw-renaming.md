@@ -133,18 +133,18 @@ FileModifyDate
 
 | Token | 含义 | 示例 |
 | --- | --- | --- |
-| `{folder}` | 当前照片文件所在目录名 | `20260501-重庆人民大礼堂` |
-| `{title}` | 目录显示标题，来自 dotfile、批量输入或目录名解析 | `大礼堂` |
-| `{parent}` | 当前照片文件所在目录的上一级目录名 | `20260501-「旅游」重庆` |
-| `{relative_dir}` | 当前照片目录相对项目根目录的路径 | `day1/20260501-重庆人民大礼堂` |
-| `{date}` | 拍摄日期时间，支持默认格式和显式格式 | `20260501` |
-| `{date:YYYYMMDD}` | 按指定格式输出拍摄日期 | `20260501` |
+| `{folder}` | 当前照片文件所在目录名 | `20260101-上海东方明珠` |
+| `{title}` | 目录显示标题，来自 dotfile、批量输入或目录名解析 | `上海东方明珠` |
+| `{parent}` | 当前照片文件所在目录的上一级目录名 | `Shanghai` |
+| `{relative_dir}` | 当前照片目录相对项目根目录的路径 | `Travel/Shanghai/20260101-上海东方明珠` |
+| `{date}` | 拍摄日期时间，支持默认格式和显式格式 | `20260101` |
+| `{date:YYYYMMDD}` | 按指定格式输出拍摄日期 | `20260101` |
 | `{date:YYMMDD}` | 按指定格式输出拍摄日期 | `260501` |
-| `{date:HHMMSS}` | 按指定格式输出拍摄时间 | `184126` |
-| `{project_date}` | 项目日期，通常来自目录名或配置 | `20260430` |
+| `{date:HHMMSS}` | 按指定格式输出拍摄时间 | `080001` |
+| `{project_date}` | 项目日期，通常来自目录名或配置 | `20260101` |
 | `{seq}` | 序号 | `1` |
 | `{seq:04}` | 固定位数序号 | `0001` |
-| `{original}` | 原始文件名，不含扩展名 | `DSC01234` |
+| `{original}` | 原始文件名，不含扩展名 | `DSC00000` |
 | `{camera}` | 相机型号，来自元数据 | `ILCE-7M4` |
 
 默认模板建议：
@@ -156,7 +156,7 @@ FileModifyDate
 示例：
 
 ```text
-20260501-大礼堂-184126_DSC09907.ARW
+20260101-上海东方明珠-080001_DSC00000.ARW
 ```
 
 这个模板对应三段式命名：`{日期}-{标题}-{其他}`。其中 `{date:YYYYMMDD}` 来自目录名或元数据，`{title}` 来自 dotfile、批量输入或目录名解析，`{date:HHMMSS}_{original}` 是其他信息，既保留拍摄时间，也保留相机原始编号。
@@ -180,8 +180,8 @@ FileModifyDate
 预览内容：
 
 ```text
-DSC09907.ARW -> 20260501-大礼堂-184126_DSC09907.ARW
-DSC09908.ARW -> 20260501-大礼堂-184127_DSC09908.ARW
+DSC00000.ARW -> 20260101-上海东方明珠-080001_DSC00000.ARW
+DSC00001.ARW -> 20260101-上海东方明珠-080002_DSC00001.ARW
 ```
 
 预览还需要展示：
@@ -224,22 +224,22 @@ RAW/DNG 文件可能存在同名伴随文件。
 示例：
 
 ```text
-DSC01234.ARW
-DSC01234.XMP
-DSC01234.JPG
+DSC00000.ARW
+DSC00000.XMP
+DSC00000.JPG
 ```
 
 当 RAW 被重命名为：
 
 ```text
-20260501-大礼堂-184126_DSC09907.ARW
+20260101-上海东方明珠-080001_DSC00000.ARW
 ```
 
 伴随文件应同步变为：
 
 ```text
-20260501-大礼堂-184126_DSC09907.XMP
-20260501-大礼堂-184126_DSC09907.JPG
+20260101-上海东方明珠-080001_DSC00000.XMP
+20260101-上海东方明珠-080001_DSC00000.JPG
 ```
 
 同步扩展名：
@@ -282,21 +282,21 @@ DSC01234.JPG
 | 字段 | 类型 | 必填 | 默认值 | 说明 |
 | --- | --- | --- | --- | --- |
 | `path` | path | 是 | 无 | 相对 `root` 的待处理目录 |
-| `title` | string | 否 | 无 | 目录内照片使用的显示标题，例如 `大礼堂` |
+| `title` | string | 否 | 无 | 目录内照片使用的显示标题，例如 `上海东方明珠` |
 | `template` | string | 否 | 无 | 该目录专用重命名模板 |
 
 建议 JSON 格式：
 
 ```json
 {
-  "root": "/Users/example/Photograph-Raw/20260501-重庆",
+  "root": "/Users/example/Photograph-Raw/Travel/Shanghai",
   "directories": [
     {
-      "path": "20260501-重庆人民大礼堂",
-      "title": "大礼堂"
+      "path": "20260101-上海东方明珠",
+      "title": "上海东方明珠"
     },
     {
-      "path": "20260501-江北机场T3到达层出租车"
+      "path": "20260101-HongKong_Victoria_Peak"
     }
   ],
   "template": "{date:YYYYMMDD}-{title}-{date:HHMMSS}_{original}"
@@ -308,7 +308,7 @@ DSC01234.JPG
 - `root` 是项目根目录，可以是绝对路径。
 - `directories` 是要处理的分类目录配置列表。
 - `directories[].path` 必须是相对 `root` 的相对路径。
-- `directories[].title` 用于覆盖目录名中的标题部分。例如目录名是 `20260501-重庆人民大礼堂`，但用户希望文件名使用 `大礼堂`，则该目录的 `title` 设置为 `大礼堂`。
+- `directories[].title` 用于覆盖目录名中的标题部分。例如目录名是 `20260101-HongKong_Victoria_Peak`，但用户希望文件名使用 `Victoria_Peak`，则该目录的 `title` 设置为 `Victoria_Peak`。
 - 工具对 `root / directory.path` 进行递归扫描，找到目录下所有支持枚举中的 RAW/DNG 文件。
 - 不支持在输入文件中逐个列出照片文件。照片文件必须由工具基于目录扫描得到。
 - 根级 `template` 可选，缺省使用默认模板。
@@ -340,10 +340,10 @@ DSC01234.JPG
 
 ```text
 .
-└── 20260501-重庆人民大礼堂
+└── 20260101-上海东方明珠
     ├── .metadata.json
-    ├── DSC09907.ARW
-    └── DSC09908.ARW
+    ├── DSC00000.ARW
+    └── DSC00001.ARW
 ```
 
 `.metadata.json` 模型契约：
@@ -371,20 +371,20 @@ DSC01234.JPG
 ```json
 {
   "version": 1,
-  "title": "大礼堂",
+  "title": "上海东方明珠",
   "template": "{date:YYYYMMDD}-{title}-{date:HHMMSS}_{original}",
   "status": "configured",
   "created_at": "2026-05-02T10:00:00+08:00",
   "updated_at": "2026-05-02T10:00:00+08:00",
   "files": [
     {
-      "original_name": "DSC09907.ARW",
-      "renamed_name": "20260501-大礼堂-184126_DSC09907.ARW",
+      "original_name": "DSC00000.ARW",
+      "renamed_name": "20260101-上海东方明珠-080001_DSC00000.ARW",
       "role": "raw"
     },
     {
-      "original_name": "DSC09907.XMP",
-      "renamed_name": "20260501-大礼堂-184126_DSC09907.XMP",
+      "original_name": "DSC00000.XMP",
+      "renamed_name": "20260101-上海东方明珠-080001_DSC00000.XMP",
       "role": "sidecar"
     }
   ]
@@ -441,20 +441,20 @@ DSC01234.JPG
 ```json
 {
   "version": 1,
-  "title": "大礼堂",
+  "title": "上海东方明珠",
   "template": "{date:YYYYMMDD}-{title}-{date:HHMMSS}_{original}",
   "status": "renamed",
   "created_at": "2026-05-02T10:00:00+08:00",
   "updated_at": "2026-05-02T10:05:00+08:00",
   "files": [
     {
-      "original_name": "DSC09907.ARW",
-      "renamed_name": "20260501-大礼堂-184126_DSC09907.ARW",
+      "original_name": "DSC00000.ARW",
+      "renamed_name": "20260101-上海东方明珠-080001_DSC00000.ARW",
       "role": "raw"
     },
     {
-      "original_name": "DSC09907.XMP",
-      "renamed_name": "20260501-大礼堂-184126_DSC09907.XMP",
+      "original_name": "DSC00000.XMP",
+      "renamed_name": "20260101-上海东方明珠-080001_DSC00000.XMP",
       "role": "sidecar"
     }
   ]
@@ -476,7 +476,7 @@ DSC01234.JPG
 回滚执行方式：
 
 ```text
-uv run python scripts/rollback.py ./20260501-重庆人民大礼堂 --dry-run
+uv run python scripts/rollback.py ./20260101-上海东方明珠 --dry-run
 ```
 
 ## Mock 模式

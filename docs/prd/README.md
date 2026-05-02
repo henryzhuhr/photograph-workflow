@@ -57,25 +57,44 @@
 
 ```text
 .
-└── Photos
-    └── 2026
-        └── 2026-04-30_family-trip
-            ├── 2026-04-30_park
-            │   ├── .metadata.json
-            │   └── DSC09907.ARW
-            └── README.md
-```
-
-也可以兼容用户已有的分类目录，例如：
-
-```text
-.
-└── Photos
+└── Photograph-Raw
     └── Travel
-        └── Japan
-            └── 2026-04-30_Tokyo
-                └── 2026-04-30_Shibuya
+        ├── Shanghai
+        │   ├── 20260101-上海东方明珠
+        │   │   ├── .metadata.json
+        │   │   └── DSC00000.ARW
+        │   └── 20260101-武康路
+        │       ├── .metadata.json
+        │       └── DSC00001.ARW
+        ├── Nanjing
+        │   ├── 20260101-中山陵
+        │   │   ├── .metadata.json
+        │   │   └── DSC00002.ARW
+        │   ├── 20260101-夫子庙秦淮河
+        │   │   ├── .metadata.json
+        │   │   └── DSC00003.ARW
+        │   └── 20260101-南京长江大桥
+        │       ├── .metadata.json
+        │       └── DSC00004.ARW
+        └── HongKong
+            ├── 20260101-维多利亚港
+            │   ├── .metadata.json
+            │   └── DSC00005.ARW
+            ├── 20260101-HongKong_Victoria_Peak
+            │   ├── .metadata.json
+            │   └── DSC00006.ARW
+            └── 20260101-中环街市
+                ├── .metadata.json
+                └── DJI_00001.DNG
 ```
+
+命名约定建议：
+
+- 原始照片根目录使用 `Photograph-Raw`。
+- 一次拍摄或一次整理后的项目目录使用 `{YYYYMMDD}-「分类」标题`，例如 `20260101-「旅游」上海`。
+- 真正包含照片的目录使用 `{YYYYMMDD}-标题`，例如 `20260101-上海东方明珠`。
+- `TODO` 目录可以作为待整理区，默认不参与重命名。
+- `.metadata.json` 只放在真正包含照片文件的目录下，不要求顶层项目目录维护元数据。
 
 工具不应强行搬迁已有目录。它应该读取用户指定的“项目目录”，递归识别其中的 RAW/DNG 和附属文件，并在照片文件所在目录维护 `.metadata.json`。
 

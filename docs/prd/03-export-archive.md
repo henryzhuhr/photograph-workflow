@@ -64,23 +64,23 @@ Lightroom 导出后的文件由用户自行处理。典型流程是：
 默认模板：
 
 ```text
-{project_date}_{project_name}_{archived_date}.zip
+{project_date}-{project_name}-{archived_date}.zip
 ```
 
 示例：
 
 ```text
-2026-04-30_Tokyo-Street_20260430.zip
+20260101-Shanghai_Oriental_Pearl-20260101.zip
 ```
 
 推荐 token：
 
 | Token | 含义 | 示例 |
 | --- | --- | --- |
-| `{project_date}` | 项目日期 | `2026-04-30` |
-| `{project_name}` | 项目名称 | `Tokyo-Street` |
-| `{folder}` | 项目目录名 | `2026-04-30_Tokyo-Street` |
-| `{archived_date}` | 归档日期 | `20260430` |
+| `{project_date}` | 项目日期 | `20260101` |
+| `{project_name}` | 项目名称 | `Shanghai_Oriental_Pearl` |
+| `{folder}` | 项目目录名 | `20260101-Shanghai_Oriental_Pearl` |
+| `{archived_date}` | 归档日期 | `20260101` |
 
 ## 归档位置
 
@@ -144,8 +144,8 @@ Lightroom 导出后的文件由用户自行处理。典型流程是：
 {
   "status": "archived",
   "archive": {
-    "created_at": "2026-04-30T22:00:00+08:00",
-    "path": "archive/2026-04-30_Tokyo-Street_20260430.zip",
+    "created_at": "2026-01-01T08:00:01+08:00",
+    "path": "archive/20260101-Shanghai_Oriental_Pearl-20260101.zip",
     "format": "zip",
     "file_count": 245,
     "size_bytes": 4294967296

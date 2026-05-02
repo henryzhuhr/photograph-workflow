@@ -35,10 +35,10 @@
 
 ```text
 .
-├── 2026-04-30_Tokyo-Street
-├── 2026-05-01_ClientA-Portrait
+├── 20260101-Shanghai_Oriental_Pearl
+├── 20260101-ClientA_Portrait
 └── Family
-    └── 2026-04-30_Birthday
+    └── 20260101-Birthday
 ```
 
 产品要求：
@@ -68,8 +68,8 @@
 生成结果：
 
 ```text
-20260501-大礼堂-184126_DSC09907.ARW
-20260501-大礼堂-184127_DSC09908.ARW
+20260101-上海东方明珠-080001_DSC00000.ARW
+20260101-上海东方明珠-080002_DSC00001.ARW
 ```
 
 ### 4. Lightroom 修图
@@ -99,7 +99,7 @@
 推荐归档包命名：
 
 ```text
-2026-04-30_Tokyo-Street_20260430.zip
+20260101-Shanghai_Oriental_Pearl-20260101.zip
 ```
 
 归档内容建议：

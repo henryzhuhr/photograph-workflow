@@ -30,13 +30,13 @@
 示例：
 
 ```text
-uv run python scripts/scan.py ./Photos/20260501-「旅游」重庆
-uv run python scripts/rename.py ./Photos/20260501-「旅游」重庆 --template "{date:YYYYMMDD}-{title}-{date:HHMMSS}_{original}" --dry-run
-uv run python scripts/rename.py ./Photos/20260501-「旅游」重庆 --template "{date:YYYYMMDD}-{title}-{date:HHMMSS}_{original}"
+uv run python scripts/scan.py ./Photograph-Raw/Travel/Shanghai
+uv run python scripts/rename.py ./Photograph-Raw/Travel/Shanghai --template "{date:YYYYMMDD}-{title}-{date:HHMMSS}_{original}" --dry-run
+uv run python scripts/rename.py ./Photograph-Raw/Travel/Shanghai --template "{date:YYYYMMDD}-{title}-{date:HHMMSS}_{original}"
 uv run python scripts/rename.py --input ./rename-input.json --dry-run
-uv run python scripts/rollback.py ./Photos/20260501-「旅游」重庆/20260501-重庆人民大礼堂 --dry-run
-uv run python scripts/archive.py ./Photos/20260501-「旅游」重庆 --output /Volumes/Archive/Photos --dry-run
-uv run python scripts/archive.py ./Photos/20260501-「旅游」重庆 --output /Volumes/Archive/Photos
+uv run python scripts/rollback.py ./Photograph-Raw/Travel/Shanghai/20260101-上海东方明珠 --dry-run
+uv run python scripts/archive.py ./Photograph-Raw/Travel/Shanghai --output /Volumes/Archive/Photos --dry-run
+uv run python scripts/archive.py ./Photograph-Raw/Travel/Shanghai --output /Volumes/Archive/Photos
 ```
 
 如果脚本稳定后需要更顺手的入口，再考虑在 `pyproject.toml` 中增加 `project.scripts`，把脚本包装成 `photograph-workflow` 命令。
