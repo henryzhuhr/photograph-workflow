@@ -10,6 +10,19 @@
 - ExifTool 可以通过 `subprocess` 调用，并以 JSON 作为稳定接口。
 - 需要扩展桌面界面、TUI、系统 CLI 或自动化脚本时，Python 生态更贴近本地照片工作流。
 
+长期方向上，当前脚本能力可能被电脑 Web 端、macOS 端和 iOS 端应用复用。因此当前实现必须把业务核心和脚本入口分离，避免把核心能力写成只能在终端交互中工作的流程。
+
+## 多端扩展架构原则
+
+当前版本只交付 Python 脚本，但核心模块需要满足以下原则：
+
+- 核心模块只接收结构化输入并返回结构化结果，脚本文本输出只是其中一种展示方式。
+- dry-run 计划、错误列表、冲突列表、metadata 更新计划和归档计划都应有可序列化的数据结构。
+- 扫描、命名、校验、回滚和归档逻辑不能直接依赖 `argparse`、终端输入或终端颜色。
+- 文件系统访问、ExifTool 调用、用户确认、进度展示和日志输出应有清晰边界，便于未来替换为 Web、macOS 或 iOS 的实现。
+- `.metadata.json` 是跨端共享的数据契约，字段命名、状态流转和兼容策略必须稳定。
+- 当前版本不实现网络服务、桌面窗口或移动端界面；只保留可扩展边界。
+
 ## uv 项目管理
 
 项目使用 uv 管理 Python 版本、依赖和执行环境。
@@ -29,7 +42,7 @@ uv run python scripts/archive.py <project-dir> --dry-run
 - 当前版本不要求 `pip install -e .` 后生成系统命令。
 - 脚本可以直接执行，便于用户按本地工作流调用。
 - 公共逻辑仍放在 `src/photograph_workflow/`，避免脚本之间复制代码。
-- `scripts/` 只做参数解析和调用业务模块。
+- `scripts/` 只做参数解析、用户确认、摘要展示和调用业务模块。
 
 ## Python 版本
 
@@ -94,13 +107,12 @@ uv run python scripts/archive.py <project-dir> --dry-run
 
 `dirs.py`：
 
-- 定义 `PhotographDir(StrEnum)`。
-- 管理本地原始照片目录和 iCloud 原始照片目录。
-- 业务代码只引用枚举，不硬编码根路径。
+- 管理本地原始照片目录和 iCloud 原始照片目录的目录契约。
+- 业务代码引用统一目录契约，不硬编码根路径。
 
 `extensions.py`：
 
-- 定义照片源文件、附属文件、视频类型的枚举。
+- 定义照片源文件、Adobe sidecar、其他素材和视频类型的枚举。
 - 扩展名匹配大小写不敏感。
 - 只处理枚举中明确支持的类型。
 
@@ -126,6 +138,7 @@ uv run python scripts/archive.py <project-dir> --dry-run
 
 - 解析命名模板。
 - 展开 `{date:YYYYMMDD}`、`{date:HHMMSS}`、`{title}`、`{original}` 等 token。
+- `{date:<format>}` 按 ISO 8601 的 basic 和 extended 表示形式输出；文件名默认使用不含冒号的 basic 格式。
 - `{original}` 必须优先来自 `.metadata.json` 首次记录的 `original_name`；ExifTool 的 `FileName` 只能作为首次接管前的当前文件名输入，不能作为已重命名文件的原始名依据。
 - 返回目标文件名，不执行文件操作。
 
@@ -153,9 +166,10 @@ uv run python scripts/archive.py <project-dir> --dry-run
 `operations/rename.py`：
 
 - 执行已验证的重命名计划。
-- 同步处理 `.xmp`、`.jpg` 等伴随文件。
-- 执行成功后写入或更新照片目录下的 `.metadata.json`。
-- 首次纳入工作流的文件必须写入不可变的 `original_name` 到 `renamed_name` 映射。
+- 同步处理 `.xmp`、`.acr` 等 Adobe sidecar 文件。
+- 执行文件 rename 前，先写入或更新照片目录下 `pending` 状态的 `.metadata.json`。
+- 文件 rename 成功后，再把 `.metadata.json` 更新为 `renamed` 状态。
+- 首次纳入工作流的文件必须写入不可变的 `original_name` 和可变的 `current_name`。
 
 `operations/rollback.py`：
 
@@ -165,12 +179,13 @@ uv run python scripts/archive.py <project-dir> --dry-run
 `operations/archive.py`：
 
 - 生成归档计划。
-- 创建 ZIP 文件。
+- 创建 ZIP 文件，文件名使用原始目录名加 `~YYYYMMDDHHMMSS` 归档时间后缀。
 - 校验归档结果。
+- 不生成额外归档记录文件，不把归档结果写回 `.metadata.json`。
 
 `inputs.py`：
 
-- 使用 Pydantic `BaseModel` 读取和校验 JSON 目录列表输入。
+- 读取和结构化校验 JSON 目录列表输入。
 - 校验 `root`、`directories`、`template`。
 - 输入只允许指定目录，不能逐个指定照片文件。
 - 后续可扩展 YAML 输入。
@@ -183,7 +198,7 @@ uv run python scripts/archive.py <project-dir> --dry-run
 `records.py`：
 
 - 读写照片目录下的 `.metadata.json`。
-- 记录目录级 rename/archive 状态。
+- 记录目录级 rename 状态。
 - 为后续 rollback 提供不可变原始文件映射。
 
 ## ExifTool 集成
@@ -231,8 +246,10 @@ DSC00000.ARW -> 20260101-上海东方明珠-080001_DSC00000.ARW
 7. 检测冲突。
 8. dry-run 展示计划。
 9. 确认照片目录下 `.metadata.json` 可写。
-10. 用户确认后执行文件系统 rename。
-11. 执行成功后写入或更新 `.metadata.json`。
+10. 用户确认。
+11. 写入或更新 `pending` 状态的 `.metadata.json`。
+12. 执行文件系统 rename。
+13. 执行成功后更新 `.metadata.json` 为 `renamed` 状态。
 
 ## 错误处理
 
@@ -250,7 +267,7 @@ DSC00000.ARW -> 20260101-上海东方明珠-080001_DSC00000.ARW
 
 - 非照片文件被跳过。
 - 空目录被跳过。
-- 找到伴随文件但策略未启用。
+- 找到 Adobe sidecar 但策略未启用。
 - 找到视频文件但当前版本不处理视频命名。
 
 ## 原子性与确认
@@ -261,8 +278,9 @@ DSC00000.ARW -> 20260101-上海东方明珠-080001_DSC00000.ARW
 2. dry-run 无错误。
 3. 确认 `.metadata.json` 可写。
 4. 用户确认。
-5. 执行重命名。
-6. 写入或更新 `.metadata.json`。
+5. 写入或更新 `pending` 状态的 `.metadata.json`。
+6. 执行重命名。
+7. 更新 `.metadata.json` 为 `renamed` 状态。
 
 任意步骤失败都不能进入下一步。重命名执行时如果遇到错误，应停止并通过 `.metadata.json` 中已存在的文件映射支持回滚或人工恢复。
 

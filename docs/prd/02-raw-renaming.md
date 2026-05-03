@@ -2,41 +2,20 @@
 
 ## 目标
 
-根据已经分类好的目录，批量重命名目录下的 RAW/DNG 文件，并支持用户自定义命名格式。这个功能是整个工作流的核心，因为它决定了后续 Lightroom 引用、附属文件和原始素材归档包的可追踪性。
+根据已经分类好的目录，批量重命名目录下的 RAW/DNG 文件，并支持用户自定义命名格式。这个功能是整个工作流的核心，因为它决定了后续 Lightroom 引用、Adobe sidecar 和原始素材归档包的可追踪性。
 
-## 工作目录枚举
+## 工作目录契约
 
-工作目录分为本地目录和 iCloud 目录两类。实现时用枚举统一管理目录根路径，不在业务逻辑里散落硬编码路径。
+工作目录分为本地目录和 iCloud 目录两类。实现时需要用统一的目录契约管理根路径，不在业务逻辑里散落硬编码路径。
 
-建议定义：
+建议目录契约：
 
-```py
-import os
-from enum import StrEnum
-
-
-_INTERNAL_ICLOUD_DIR = os.path.expandvars(
-    r"$HOME/Library/Mobile Documents/com~apple~CloudDocs"
-)
-"""内部 iCloud 目录，不对外暴露"""
-
-_INTERNAL_LOCAL_DIR = os.path.expandvars(r"$HOME")
-"""内部本地目录，不对外暴露"""
-
-
-class PhotographDir(StrEnum):
-    ICLOUD_DIR = _INTERNAL_ICLOUD_DIR
-    """iCloud 目录"""
-
-    LOCAL_DIR = _INTERNAL_LOCAL_DIR
-    """本地目录"""
-
-    ICLOUD_RAW_PHOTO = f"{ICLOUD_DIR}/Photograph/Photograph-Raw"
-    """iCloud 原始照片目录"""
-
-    LOCAL_RAW_PHOTO = f"{LOCAL_DIR}/Photograph-Raw"
-    """本地原始照片目录"""
-```
+| 目录 | 含义 | 示例 |
+| --- | --- | --- |
+| 本地根目录 | 用户本机可访问的基础目录 | `$HOME` |
+| iCloud 根目录 | iCloud Drive 在本机的同步目录 | `$HOME/Library/Mobile Documents/com~apple~CloudDocs` |
+| 本地原始照片目录 | 本地 RAW/DNG 工作区 | `$HOME/Photograph-Raw` |
+| iCloud 原始照片目录 | iCloud RAW/DNG 工作区 | `iCloud Drive/Photograph/Photograph-Raw` |
 
 ## 支持的文件类型
 
@@ -139,7 +118,7 @@ FileModifyDate
 | `{relative_dir}` | 当前照片目录相对项目根目录的路径 | `Travel/Shanghai/20260101-上海东方明珠` |
 | `{date}` | 拍摄日期时间，支持默认格式和显式格式 | `20260101` |
 | `{date:YYYYMMDD}` | 按指定格式输出拍摄日期 | `20260101` |
-| `{date:YYMMDD}` | 按指定格式输出拍摄日期 | `260501` |
+| `{date:YYMMDD}` | 按指定格式输出拍摄日期 | `260101` |
 | `{date:HHMMSS}` | 按指定格式输出拍摄时间 | `080001` |
 | `{project_date}` | 项目日期，通常来自目录名或配置 | `20260101` |
 | `{seq}` | 序号 | `1` |
@@ -159,15 +138,17 @@ FileModifyDate
 20260101-上海东方明珠-080001_DSC00000.ARW
 ```
 
-这个模板对应三段式命名：`{日期}-{标题}-{其他}`。其中 `{date:YYYYMMDD}` 来自目录名或元数据，`{title}` 来自 dotfile、批量输入或目录名解析，`{date:HHMMSS}_{original}` 是其他信息，既保留拍摄时间，也保留相机原始编号。
+这个模板对应三段式命名：`{日期}-{标题}-{其他}`。第一段 `{date:YYYYMMDD}` 来自照片元数据，第二段 `{title}` 来自 dotfile、批量输入或目录名解析，第三段 `{date:HHMMSS}_{original}` 既保留拍摄时间，也保留相机原始编号。
 
 `{date}` 格式规则：
 
 - `{date}` 不带格式时使用默认格式 `YYYYMMDD`。
-- `{date:<format>}` 使用显式格式输出日期时间，格式语义参考通用日期时间格式标准，并按项目约定支持文件名常用紧凑写法。
-- 当前支持的日期格式包括 `YYYYMMDD`、`YYMMDD`、`YYDDMM`、`YYYYDDMM`。
-- 当前支持的时间格式包括 `HHMMSS`。
-- 当前不支持混合分隔符、自然语言月份、星期、时区等格式。
+- `{date:<format>}` 使用显式格式输出日期时间，格式语义按 ISO 8601 的 basic 和 extended 表示形式设计。
+- 当前支持的日期格式包括 `YYYYMMDD`、`YYYY-MM-DD`、`YYMMDD`。
+- 当前支持的时间格式包括 `HHMMSS`、`HH:mm:ss`。
+- 当前支持的日期时间格式包括 `YYYYMMDDTHHMMSS`、`YYYY-MM-DDTHH:mm:ss`。
+- 默认文件名模板必须使用不含冒号的 basic 格式，避免跨平台非法字符。
+- 当前不支持自然语言月份、星期、时区等格式。
 - 如果格式无法解析，或者格式中包含不支持的符号，dry-run 必须报错并阻止执行。
 - `{date:HHMMSS}` 取拍摄时间中的时分秒；不再单独提供 `{timestamp}` token。
 
@@ -188,7 +169,7 @@ DSC00001.ARW -> 20260101-上海东方明珠-080002_DSC00001.ARW
 
 - 扫描到的 RAW 数量。
 - 扫描到的照片目录数量。
-- 将被同步重命名的伴随文件数量。
+- 将被同步重命名的 Adobe sidecar 数量。
 - 冲突文件列表。
 - 无法读取元数据的文件列表。
 - 最终输出目录。
@@ -213,20 +194,19 @@ DSC00001.ARW -> 20260101-上海东方明珠-080002_DSC00001.ARW
 
 以下情况应给出警告：
 
-- 元数据缺失导致 `{date}` 或 `{camera}` 为空。
+- 可选元数据 token 缺失且模板允许空值或回退。
 - 目录名包含空格、特殊符号或过长。
 - 文件扩展名不在支持列表里，但疑似 RAW 文件。
 
-## 伴随文件策略
+## Adobe sidecar 策略
 
-RAW/DNG 文件可能存在同名伴随文件。
+RAW/DNG 文件可能存在同名 Adobe sidecar 文件。当前版本以 Lightroom 工作流为目标，必须支持 Adobe sidecar 的同步重命名。
 
 示例：
 
 ```text
 DSC00000.ARW
 DSC00000.XMP
-DSC00000.JPG
 ```
 
 当 RAW 被重命名为：
@@ -235,29 +215,26 @@ DSC00000.JPG
 20260101-上海东方明珠-080001_DSC00000.ARW
 ```
 
-伴随文件应同步变为：
+Adobe sidecar 应同步变为：
 
 ```text
 20260101-上海东方明珠-080001_DSC00000.XMP
-20260101-上海东方明珠-080001_DSC00000.JPG
 ```
 
-同步扩展名：
+默认同步扩展名：
 
 ```text
 .xmp
 .acr
-.jpg
-.jpeg
 ```
 
-伴随文件扩展名也需要写入枚举，并标注用途：
+Adobe sidecar 扩展名也需要写入枚举，并标注用途：
 
 | 枚举值 | 扩展名 | 用途 | 当前版本行为 |
 | --- | --- | --- | --- |
 | `ADOBE_XMP` | `.xmp` | Adobe sidecar | 自动同步 |
 | `ADOBE_ACR` | `.acr` | Adobe Camera Raw sidecar | 自动同步 |
-| `CAMERA_JPEG` | `.jpg` / `.jpeg` | 机内直出 JPEG | 自动识别并纳入计划 |
+| `CAMERA_JPEG` | `.jpg` / `.jpeg` | 机内直出 JPEG，不属于 Adobe sidecar | 可识别，但不作为当前版本默认 sidecar 要求 |
 
 视频文件不定义命名规则，不参与自动重命名。架构保留视频文件管理能力，视频应以独立规则处理 `.mov`、`.mp4`、`.wav` 等文件。
 
@@ -267,7 +244,7 @@ DSC00000.JPG
 
 当前版本必须支持 JSON 输入；YAML 不作为必需能力，除非项目已经引入 YAML 解析依赖。
 
-输入文件必须用 Pydantic `BaseModel` 强制校验格式。脚本读取 JSON 后，必须先通过模型校验，再进入目录扫描、元数据读取和重命名计划生成。
+输入文件必须先做结构化格式校验，再进入目录扫描、元数据读取和重命名计划生成。具体校验库不在 PRD 中规定，后续技术设计或 TDD 再定义。
 
 输入模型契约：
 
@@ -313,7 +290,9 @@ DSC00000.JPG
 - 不支持在输入文件中逐个列出照片文件。照片文件必须由工具基于目录扫描得到。
 - 根级 `template` 可选，缺省使用默认模板。
 - 目录级 `template` 可选，优先级高于根级 `template`。
-- 如果模板使用 `{title}`，但目录配置和 dotfile 都没有提供 `title`，工具应从目录名解析标题；无法解析时阻止执行。
+- `directories[].title` 只对 `path` 指向且直接包含照片文件的目录生效，不递归继承到子照片目录。
+- 如果 `path` 是分类容器且目录本身没有照片文件，则该项不允许设置 `title`；dry-run 必须报错并阻止执行。子目录由自己的 `.metadata.json`、批量输入配置或目录名默认解析决定。
+- 如果模板使用 `{title}`，但目录配置和 `.metadata.json` 都没有提供 `title`，工具默认从目录名中剥离前缀日期得到标题。例如 `20260101-HongKong_Victoria_Peak` 得到 `HongKong_Victoria_Peak`，不做语义压缩。
 
 校验要求：
 
@@ -328,7 +307,7 @@ DSC00000.JPG
 
 每个照片目录可以包含一个由本工作流管理的 `.metadata.json`，用于保存当前目录的命名配置、处理状态和原始文件映射。该文件用于简化长期管理：批量输入只需要指定目录，目录自己的命名偏好跟随目录保存。
 
-`.metadata.json` 是目录级元数据规范。同一个目录下的所有照片源文件和附属文件必须严格遵守同一套配置，不允许对单个文件设置例外规则。
+`.metadata.json` 是目录级元数据规范。同一个目录下的所有照片源文件和 Adobe sidecar 必须严格遵守同一套配置，不允许对单个文件设置例外规则。
 
 建议文件名：
 
@@ -353,17 +332,17 @@ DSC00000.JPG
 | `version` | integer | 是 | `1` | 元数据格式版本 |
 | `title` | string | 否 | 无 | 该目录照片使用的显示标题 |
 | `template` | string | 否 | 无 | 该目录专用重命名模板 |
-| `status` | string | 否 | `configured` | 目录处理状态 |
+| `status` | string | 否 | `configured` | 目录处理状态，例如 `configured`、`pending`、`renamed`、`rolled_back` |
 | `created_at` | datetime | 否 | 无 | 元数据文件创建时间 |
 | `updated_at` | datetime | 否 | 无 | 最近一次由工具更新的时间 |
-| `files` | list[object] | 否 | `[]` | 原始文件名和重命名后文件名的不可变映射 |
+| `files` | list[object] | 否 | `[]` | 原始文件名和当前工作流文件名的映射 |
 
 `files` 每一项的模型契约：
 
 | 字段 | 类型 | 必填 | 默认值 | 说明 |
 | --- | --- | --- | --- | --- |
 | `original_name` | string | 是 | 无 | 第一次执行时记录的原始文件名 |
-| `renamed_name` | string | 是 | 无 | 第一次执行时生成的重命名后文件名 |
+| `current_name` | string | 是 | 无 | 当前或 `pending` 状态下计划由工作流管理的文件名 |
 | `role` | string | 是 | 无 | 文件角色，例如 `raw`、`sidecar` |
 
 示例：
@@ -374,17 +353,17 @@ DSC00000.JPG
   "title": "上海东方明珠",
   "template": "{date:YYYYMMDD}-{title}-{date:HHMMSS}_{original}",
   "status": "configured",
-  "created_at": "2026-05-02T10:00:00+08:00",
-  "updated_at": "2026-05-02T10:00:00+08:00",
+  "created_at": "2026-01-01T08:00:01+08:00",
+  "updated_at": "2026-01-01T08:00:01+08:00",
   "files": [
     {
       "original_name": "DSC00000.ARW",
-      "renamed_name": "20260101-上海东方明珠-080001_DSC00000.ARW",
+      "current_name": "20260101-上海东方明珠-080001_DSC00000.ARW",
       "role": "raw"
     },
     {
       "original_name": "DSC00000.XMP",
-      "renamed_name": "20260101-上海东方明珠-080001_DSC00000.XMP",
+      "current_name": "20260101-上海东方明珠-080001_DSC00000.XMP",
       "role": "sidecar"
     }
   ]
@@ -393,18 +372,21 @@ DSC00000.JPG
 
 处理规则：
 
-- 如果目录内存在 `.metadata.json`，工具必须优先读取该文件，并用 Pydantic `BaseModel` 校验格式。
-- 如果 `.metadata.json` 存在且合法，目录命名配置以该文件为准；批量输入中的目录级 `title` 和 `template` 只能作为显式覆盖，覆盖行为必须在 dry-run 中展示。
+- 如果目录内存在 `.metadata.json`，工具必须优先读取该文件，并做结构化格式校验。
+- 如果 `.metadata.json` 存在且合法，目录命名配置默认以该文件为准。
+- 命令行或批量输入中的目录级 `title` / `template` 可以显式覆盖 `.metadata.json`；覆盖必须在 dry-run 中展示，并在实际执行成功后写回 `.metadata.json`。
+- 显式覆盖已有 `title` / `template` 时，工具必须对该目录执行全目录重新规划，不能只影响新增文件。
 - 如果 `.metadata.json` 不存在，工具按批量输入或默认规则生成重命名计划，并在 dry-run 中展示将创建该文件。
-- 实际执行成功后，工具在目录下创建或更新 `.metadata.json`。
+- 实际重命名前，工具必须先写入或更新 `.metadata.json` 为 `pending` 状态，并保证 `original_name` 到 `current_name` 的计划映射已经落盘。
+- 文件 rename 成功后，工具再把 `.metadata.json` 更新为 `renamed` 状态。
 - `.metadata.json` 由本工作流产生和维护，用户可以手工编辑，但格式错误会阻止执行。
 - `.metadata.json` 不记录单个文件的命名规则，不允许出现 per-file 配置。
-- 同一目录内的 RAW/DNG、`.xmp`、`.acr`、机内 JPEG 必须使用同一个 `title`、`template` 和日期格式规则。
+- 同一目录内的 RAW/DNG、`.xmp`、`.acr` 必须使用同一个 `title`、`template` 和日期格式规则。
 - 如果工具发现同一目录内存在不符合 `.metadata.json` 规范的已命名文件，dry-run 必须报告偏差；默认阻止继续执行，直到用户修正文件或显式执行回滚/重新规划。
-- `files` 映射只在文件第一次纳入工作流并实际执行重命名时写入。`original_name` 必须表示该文件第一次被工作流接管时的真实原始文件名，不能随着后续重命名而改变。
-- 映射一旦确定，后续执行不得修改既有条目的 `original_name` 和 `renamed_name`，否则无法判断 `{original}` 的真实来源。
-- 后续如果发现新增照片，只能追加新的 `files` 条目，不能重写已有映射。
-- 回滚必须使用 `.metadata.json` 中的 `files` 映射，将 `renamed_name` 恢复为 `original_name`。
+- `files` 映射在文件第一次纳入工作流时写入。`original_name` 必须表示该文件第一次被工作流接管时的真实原始文件名，不能随着后续重命名而改变。
+- 后续全目录重规划允许更新既有条目的 `current_name`，但不得修改既有条目的 `original_name`。
+- 后续如果发现新增照片，只能追加新的 `files` 条目，不能删除或重建已有条目。
+- 回滚必须使用 `.metadata.json` 中的 `files` 映射，将 `current_name` 恢复为 `original_name`。
 
 ## 原始文件名来源
 
@@ -424,7 +406,9 @@ DSC00000.JPG
 2. 批量输入中该目录的 `title` / `template`。
 3. 目录内 `.metadata.json`。
 4. 批量输入根级 `template`。
-5. 默认模板和从目录名解析出的标题。
+5. 默认模板和从目录名剥离日期得到的标题。
+
+如果第 1 或第 2 项覆盖了已有 `.metadata.json` 中的 `title` / `template`，工具必须把覆盖结果写回 `.metadata.json`，并执行全目录重规划。
 
 ## 操作记录
 
@@ -444,17 +428,17 @@ DSC00000.JPG
   "title": "上海东方明珠",
   "template": "{date:YYYYMMDD}-{title}-{date:HHMMSS}_{original}",
   "status": "renamed",
-  "created_at": "2026-05-02T10:00:00+08:00",
-  "updated_at": "2026-05-02T10:05:00+08:00",
+  "created_at": "2026-01-01T08:00:01+08:00",
+  "updated_at": "2026-01-01T08:00:02+08:00",
   "files": [
     {
       "original_name": "DSC00000.ARW",
-      "renamed_name": "20260101-上海东方明珠-080001_DSC00000.ARW",
+      "current_name": "20260101-上海东方明珠-080001_DSC00000.ARW",
       "role": "raw"
     },
     {
       "original_name": "DSC00000.XMP",
-      "renamed_name": "20260101-上海东方明珠-080001_DSC00000.XMP",
+      "current_name": "20260101-上海东方明珠-080001_DSC00000.XMP",
       "role": "sidecar"
     }
   ]
@@ -468,9 +452,9 @@ DSC00000.JPG
 回滚规则：
 
 - 回滚脚本读取指定目录的 `.metadata.json`。
-- 对每个 `files` 条目，将 `renamed_name` 恢复为 `original_name`。
+- 对每个 `files` 条目，将 `current_name` 恢复为 `original_name`。
 - 如果 `files` 映射缺失，禁止回滚。
-- 如果 `renamed_name` 不存在，或 `original_name` 已存在且不是当前映射的一部分，dry-run 必须报错并阻止执行。
+- 如果 `current_name` 不存在，或 `original_name` 已存在且不是当前映射的一部分，dry-run 必须报错并阻止执行。
 - 回滚不会删除 `.metadata.json`；回滚完成后更新 `status` 和 `updated_at`。
 
 回滚执行方式：
@@ -486,7 +470,7 @@ uv run python scripts/rollback.py ./20260101-上海东方明珠 --dry-run
 mock 模式要求：
 
 - 不执行任何实际文件操作。
-- 输出完整计划，包括重命名、伴随文件同步、`.metadata.json` 创建或更新。
+- 输出完整计划，包括重命名、Adobe sidecar 同步、`.metadata.json` 创建或更新。
 - 支持模拟错误，例如文件不存在、权限不足、磁盘空间不足、目标路径已存在、ExifTool 读取失败。
 - mock 模式可以与 dry-run 同时使用；mock 主要用于模拟环境和错误，dry-run 主要用于展示真实计划。
 
@@ -498,7 +482,7 @@ mock 模式要求：
 - 工具可以 dry-run 输出完整重命名计划。
 - 工具实际执行前必须已经完成 dry-run 校验，并获得用户确认。
 - 发生命名冲突时，不修改任何文件。
-- 任意错误都会阻止整个批次执行，保证原子性。
-- 执行成功后，RAW 和已识别伴随文件都完成重命名。
+- dry-run 阶段发现任意错误都会阻止整个批次执行；实际执行中如果出现文件系统错误，必须保留 `.metadata.json` 映射用于回滚或人工恢复。
+- 执行成功后，RAW 和已识别 Adobe sidecar 都完成重命名。
 - 执行成功后，照片目录写入或更新 `.metadata.json`。
-- 执行成功后，目录下 `.metadata.json` 包含可用于回滚的不可变文件映射。
+- 执行成功后，目录下 `.metadata.json` 包含可用于回滚的文件映射，其中 `original_name` 不可变。

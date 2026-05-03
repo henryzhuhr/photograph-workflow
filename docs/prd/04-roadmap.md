@@ -13,7 +13,7 @@
 - 重命名 dry-run。
 - 实际执行前用户确认。
 - 冲突检测。
-- RAW/DNG 与常见伴随文件同步重命名。
+- RAW/DNG 与 Adobe sidecar 同步重命名。
 - 目录级 `.metadata.json` 操作记录。
 - `.metadata.json` 原始文件映射。
 - rollback 脚本。
@@ -21,7 +21,7 @@
 - JSON 目录列表输入。
 - 归档 dry-run。
 - ZIP 归档。
-- 归档结果记录。
+- 带归档时间的 ZIP 文件命名。
 
 ## 推荐执行形态
 
@@ -41,17 +41,23 @@ uv run python scripts/archive.py ./Photograph-Raw/Travel/Shanghai --output /Volu
 
 如果脚本稳定后需要更顺手的入口，再考虑在 `pyproject.toml` 中增加 `project.scripts`，把脚本包装成 `photograph-workflow` 命令。
 
+## 多端扩展约束
+
+当前版本不实现电脑 Web 端、macOS 端或 iOS 端应用，但所有产品和技术设计必须保留多端扩展空间。
+
+约束：
+
+- 核心能力不能只服务命令行交互，必须能被未来 GUI、Web API 或移动端操作流复用。
+- `.metadata.json`、批量输入 JSON 和 dry-run 计划输出必须保持结构化，不能依赖只适合终端阅读的文本。
+- 文件扫描、命名模板、元数据读取、冲突检测、两阶段 metadata 写入和归档命名应作为平台无关的核心规则。
+- 脚本只负责参数解析、用户确认和摘要展示，不承载不可复用的业务逻辑。
+- 后续多端应用可以复用同一套核心模块，并按平台替换文件选择、权限授权、进度展示和错误呈现方式。
+
 ## 配置文件
 
-建议支持项目级配置和全局配置。
+当前版本不定义项目级配置文件。目录级配置和状态由每个照片目录下的 `.metadata.json` 管理；跨项目默认值可由全局配置管理。
 
-项目级配置：
-
-```text
-照片目录下的 .metadata.json
-```
-
-全局配置：
+全局配置建议路径：
 
 ```text
 ~/.config/photograph-workflow/config.json
@@ -61,8 +67,8 @@ uv run python scripts/archive.py ./Photograph-Raw/Travel/Shanghai --output /Volu
 
 ```json
 {
-  "raw_extensions": [".arw", ".cr3", ".nef", ".dng"],
-  "sidecar_extensions": [".xmp", ".jpg", ".jpeg"],
+  "raw_extensions": [".arw", ".dng"],
+  "sidecar_extensions": [".xmp", ".acr"],
   "rename_template": "{date:YYYYMMDD}-{title}-{date:HHMMSS}_{original}",
   "timestamp_source": "metadata",
   "on_name_conflict": "fail",
@@ -96,7 +102,7 @@ Python 标准库应覆盖大部分当前版本能力：
 
 - `argparse`：脚本参数解析。
 - `pathlib`：路径处理。
-- `enum.StrEnum`：目录、扩展名、文件角色枚举。
+- `enum`：目录、扩展名、文件角色枚举。
 - `dataclasses`：内部计划对象。
 - `json`：配置、操作记录和 ExifTool JSON 解析。
 - `subprocess`：调用 ExifTool。
@@ -113,8 +119,9 @@ Python 标准库应覆盖大部分当前版本能力：
 - 实际执行前必须先通过 dry-run 生成可执行计划。
 - 任何冲突都应在修改前发现。
 - dry-run 和实际执行应使用同一套计划生成逻辑。
-- 任意错误都会阻止整个批次执行。
-- 执行前确认每个照片目录的 `.metadata.json` 可写，并在执行成功后写入不可变原始文件映射。
+- dry-run 阶段的任意错误都会阻止整个批次执行。
+- 实际执行中如果发生文件系统错误，必须留下足够的 `.metadata.json` 映射信息用于回滚或人工恢复。
+- 执行文件重命名前写入 `pending` 状态的 `.metadata.json`，确保 `original_name` 到 `current_name` 的计划映射已经落盘。
 
 性能：
 
@@ -149,19 +156,20 @@ Python 标准库应覆盖大部分当前版本能力：
 
 决策：
 
-- `{date}`、`{camera}` 等元数据 token 应允许为空时回退。
+- 默认模板依赖 `{date}`，如果无法读取可用拍摄时间，dry-run 必须报错并阻止执行。
+- 后续可选 token 允许定义各自的空值或回退策略，但不能影响默认模板的安全性。
 - 默认模板不强依赖相机型号。
-- 拍摄时间不可用时回退到原文件名排序。
+- 拍摄时间不可用时只能回退展示排序，不能生成依赖 `{date}` 的目标文件名。
 
-### 伴随文件误匹配风险
+### Adobe sidecar 误匹配风险
 
-同名 `.jpg`、`.jpeg`、`.xmp`、`.acr` 可能是相关文件，也可能只是恰好同名。
+同名 `.xmp`、`.acr` 可能是相关文件，也可能只是恰好同名。
 
 决策：
 
 - `.xmp` 默认同步。
 - `.acr` 默认同步。
-- 机内直出 JPEG 默认识别并纳入计划。
+- 机内直出 JPEG 可识别，但不作为当前版本默认 sidecar 同步要求。
 - 视频文件不参与当前版本命名，但架构保留视频管理能力。
 - 允许按扩展名配置同步策略。
 
@@ -172,7 +180,9 @@ Python 标准库应覆盖大部分当前版本能力：
 - 图形界面。
 - 自动分类。
 - Lightroom catalog 读取。
+- Capture One 等其他后期软件适配。
 - 云同步。
 - 图片内容识别。
 - 自动修图。
 - Lightroom 导出成片管理。
+- 电脑 Web 端、macOS 端和 iOS 端应用界面。
