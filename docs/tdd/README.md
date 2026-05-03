@@ -2,72 +2,42 @@
 
 ## 目标
 
-本文档记录当前版本的技术设计契约。PRD 只描述产品边界和用户可见行为；字段、模块和数据结构细节在 TDD 中维护。
+TDD 记录当前版本的技术设计契约。PRD 只描述产品边界和用户可见行为；字段、模块、流程和数据结构细节在 TDD 中维护。
 
-## 结构化计划契约
+当前版本交付 uv 管理的 Python 脚本，不要求安装为系统 CLI。核心逻辑必须独立于终端交互，便于未来复用到电脑 Web 端、macOS 端和 iOS 端应用。
 
-业务模块必须返回结构化计划对象，脚本层只负责把计划渲染成终端摘要。dry-run、rename、rollback、archive 都必须使用结构化计划，避免未来电脑 Web 端、macOS 端和 iOS 端重复解析终端文本。
+技术设计必须为未来迭代留出空间。当前版本只交付本地 Python 脚本，但扫描、命名、校验、metadata、归档和计划生成规则不能和脚本入口、终端交互、Lightroom 或本机文件系统实现强绑定。
 
-通用计划字段：
+## 当前范围
 
-| 字段 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
-| `operation` | string | 是 | `rename`、`rollback`、`archive` 或 `archive_name` |
-| `root` | path | 是 | 本次操作的输入目录 |
-| `dry_run` | boolean | 是 | 是否为 dry-run |
-| `items` | list[object] | 是 | 计划条目列表 |
-| `warnings` | list[object] | 是 | 非阻塞警告 |
-| `errors` | list[object] | 是 | 阻塞错误 |
-| `metadata_changes` | list[object] | 否 | `.metadata.json` 创建或更新计划 |
-| `requires_confirmation` | boolean | 是 | 实际执行前是否需要用户确认 |
+当前版本实现这些能力：
 
-## Rename Plan
+- 递归扫描用户指定目录。
+- 识别 Sony `.arw` 与 DJI `.dng` 候选源文件。
+- 通过 ExifTool 读取元数据并确认 DJI DNG 来源。
+- 按照片文件所在目录和命名模板生成重命名计划。
+- 同步处理与 RAW/DNG 同 stem 的 `.xmp`、`.acr`、`.jpg`、`.jpeg` sidecar。
+- 维护照片目录下 `.metadata.json`。
+- 支持 dry-run、实际重命名、回滚。
+- 支持用户传入目录整体 ZIP 归档。
+- 支持只生成带时间戳的推荐压缩包名，辅助用户手动压缩。
 
-rename 条目至少包含：
+当前版本不实现：
 
-| 字段 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
-| `source_path` | path | 是 | 当前源路径 |
-| `target_path` | path | 是 | 计划目标路径 |
-| `role` | string | 是 | `raw` 或 `sidecar` |
-| `raw_source_path` | path | 否 | sidecar 归属的 RAW/DNG 路径；RAW/DNG 自身可为空 |
-| `original_name` | string | 是 | 首次纳入工作流时记录的原始文件名 |
-| `current_name` | string | 是 | 文件系统当前真实文件名 |
-| `planned_name` | string | 否 | pending 状态下计划目标文件名 |
-| `status` | string | 是 | `pending`、`renamed`、`failed`、`rolled_back` 等 |
+- 图形界面。
+- Lightroom catalog 读取或写入。
+- Capture One 等其他后期软件适配。
+- Lightroom 导出成片管理。
+- 自动分类、图片内容识别、自动修图。
 
-## Archive Plan
+## 文档索引
 
-archive 条目至少包含：
-
-| 字段 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
-| `source_path` | path | 是 | 将检查或纳入归档的源路径 |
-| `archive_path` | path | 是 | 目标压缩包路径 |
-| `size_bytes` | integer | 否 | 文件大小 |
-| `included` | boolean | 是 | 是否纳入归档 |
-| `exclude_reason` | string | 否 | 被排除时的原因 |
-
-## Archive Name Plan
-
-手动压缩辅助只生成推荐压缩包名称，不执行压缩。
-
-字段至少包含：
-
-| 字段 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
-| `source_dir` | path | 是 | 用户选择的目录 |
-| `archive_name` | string | 是 | 推荐压缩包文件名 |
-| `archive_path` | path | 否 | 如果提供输出目录，则返回完整目标路径 |
-| `archived_at` | datetime | 是 | 用于命名的归档时间 |
-
-## Rollback Plan
-
-rollback 条目至少包含：
-
-| 字段 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
-| `current_path` | path | 是 | 当前真实文件路径 |
-| `target_original_path` | path | 是 | 回滚目标路径 |
-| `role` | string | 是 | `raw` 或 `sidecar` |
-| `status` | string | 是 | 回滚计划状态 |
+| 文档 | 内容 |
+| --- | --- |
+| [01-architecture.md](./01-architecture.md) | 技术决策、依赖、目录结构、脚本入口 |
+| [02-data-contracts.md](./02-data-contracts.md) | 枚举、Pydantic 模型、结构化计划、错误码 |
+| [03-scan-and-metadata.md](./03-scan-and-metadata.md) | 文件扫描、ExifTool、RAW/DNG 识别、sidecar 匹配 |
+| [04-rename-and-rollback.md](./04-rename-and-rollback.md) | 命名模板、rename 流程、rollback 流程 |
+| [05-archive.md](./05-archive.md) | ZIP 归档、手动压缩命名辅助、exclude 规则 |
+| [06-testing.md](./06-testing.md) | mock 后端、测试策略、实现顺序 |
+| [07-extensibility.md](./07-extensibility.md) | 多端应用、多后期软件和长期演进边界 |
