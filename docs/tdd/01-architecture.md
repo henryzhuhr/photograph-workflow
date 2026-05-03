@@ -66,7 +66,8 @@ ExifTool 作为外部能力管理：
 │   ├── rename.py
 │   ├── rollback.py
 │   ├── archive.py
-│   └── archive_name.py
+│   ├── archive_name.py
+│   └── workspace.py
 ├── src
 │   └── photograph_workflow
 │       ├── __init__.py
@@ -126,6 +127,7 @@ ExifTool 作为外部能力管理：
 | `scripts/rollback.py` | 根据 `.metadata.json` 生成或执行回滚计划 |
 | `scripts/archive.py` | 生成或执行 ZIP 归档计划 |
 | `scripts/archive_name.py` | 只生成推荐压缩包名称，不执行压缩 |
+| `scripts/workspace.py` | 管理用户保存过的常用工作目录 |
 
 推荐命令：
 
@@ -137,6 +139,10 @@ uv run python scripts/rename.py --input rename-input.json --dry-run
 uv run python scripts/rollback.py <photo-dir> --dry-run
 uv run python scripts/archive.py <root> --output <archive-dir> --dry-run
 uv run python scripts/archive_name.py <root>
+uv run python scripts/workspace.py list
+uv run python scripts/workspace.py add <path> --name <name> --kind local
+uv run python scripts/workspace.py set-default <workspace-id>
+uv run python scripts/workspace.py remove <workspace-id>
 ```
 
 脚本入口调用 `application` 层用例。用例返回结构化计划后，脚本再决定如何展示文本、是否请求用户确认、是否执行实际操作。
@@ -152,6 +158,15 @@ uv run python scripts/archive_name.py <root>
 ```
 
 当前本地 adapter 负责读写这个文件。未来 Web、macOS、iOS 入口可以复用相同数据契约，但替换目录选择、权限授权和持久化 adapter。
+
+当前版本通过 `scripts/workspace.py` 暴露最小工作区管理能力：
+
+- `list`：列出已保存 workspace 和默认 workspace。
+- `add <path>`：保存一个可访问目录，可指定 `name` 和 `kind`。
+- `set-default <workspace-id>`：设置默认 workspace。
+- `remove <workspace-id>`：移除已保存 workspace，不删除真实目录。
+
+`scan`、`rename`、`archive` 等脚本显式传入 `root` 时永远优先使用该路径；未显式传入 `root` 的入口才可以通过 workspace 解析。
 
 ## 端口设计
 

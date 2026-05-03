@@ -96,6 +96,25 @@
 - 未传入 `root` 时，可以从 `default_workspace_id` 或用户选择的 workspace 解析项目目录。
 - 当前版本不引入通用全局配置文件，workspace 文件只保存用户选择过的目录。
 
+### WorkspaceCommandInput
+
+用于 `scripts/workspace.py`。
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `operation` | string | 是 | `list`、`add`、`set_default` 或 `remove` |
+| `path` | path | 否 | `add` 时必填，表示要保存的工作目录 |
+| `name` | string | 否 | `add` 时可选，默认使用目录名 |
+| `kind` | WorkspaceKind | 否 | `add` 时可选，默认 `custom` |
+| `workspace_id` | string | 否 | `set_default`、`remove` 时必填 |
+
+校验规则：
+
+- `add` 的 `path` 必须存在且是目录。
+- `name` 存在时不能为空字符串。
+- `set_default` 和 `remove` 的 `workspace_id` 必须命中已有 workspace。
+- `remove` 只删除 workspace 记录，不删除文件系统目录。
+
 ### BatchInput
 
 用于 `--input` JSON。
@@ -267,6 +286,8 @@ ArchivePlan 继承 Common Plan，并补充归档级字段。
 | `metadata_version_unsupported` | error | `.metadata.json` 版本不支持 |
 | `metadata_write_failed` | error | `.metadata.json` 不可写或写入失败 |
 | `directory_no_supported_sources` | warning/error | 指定目录没有支持的 RAW/DNG；级别由 `strict` 决定 |
+| `workspace_not_found` | error | 指定 workspace 不存在 |
+| `workspace_path_invalid` | error | workspace 路径不存在或不是目录 |
 | `sidecar_ambiguous` | error | 同 stem 多 RAW/DNG，sidecar 归属不明确 |
 | `archive_target_exists` | error | 目标 ZIP 已存在 |
 | `archive_name_target_exists` | warning | `archive_name` 推荐目标已存在 |
