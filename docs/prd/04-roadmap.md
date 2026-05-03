@@ -13,7 +13,7 @@
 - 重命名 dry-run。
 - 实际执行前用户确认。
 - 冲突检测。
-- RAW/DNG 与 Adobe sidecar 同步重命名。
+- RAW/DNG 与 sidecar 同步重命名。
 - 目录级 `.metadata.json` 操作记录。
 - `.metadata.json` 原始文件映射。
 - rollback 脚本。
@@ -68,7 +68,7 @@ uv run python scripts/archive.py ./Photograph-Raw/Travel/Shanghai --output /Volu
 ```json
 {
   "raw_extensions": [".arw", ".dng"],
-  "sidecar_extensions": [".xmp", ".acr"],
+  "sidecar_extensions": [".xmp", ".acr", ".jpg", ".jpeg"],
   "rename_template": "{date:YYYYMMDD}-{title}-{date:HHMMSS}_{original}",
   "timestamp_source": "metadata",
   "on_name_conflict": "fail",
@@ -77,7 +77,25 @@ uv run python scripts/archive.py ./Photograph-Raw/Travel/Shanghai --output /Volu
   "sequence_scope": "per-directory",
   "archive": {
     "format": "zip",
-    "exclude": [".DS_Store", "Thumbs.db", "*.tmp"]
+    "exclude": [
+      ".DS_Store",
+      "._*",
+      ".Spotlight-V100",
+      ".Trashes",
+      ".fseventsd",
+      "Thumbs.db",
+      "desktop.ini",
+      "*.tmp",
+      "*.temp",
+      "*.swp",
+      "*.part",
+      "*.zip",
+      "*.7z",
+      "*.rar",
+      "*.lrdata"
+    ],
+    "include_dotfiles_by_default": true,
+    "always_include": [".metadata.json"]
   }
 }
 ```
@@ -121,7 +139,7 @@ Python 标准库应覆盖大部分当前版本能力：
 - dry-run 和实际执行应使用同一套计划生成逻辑。
 - dry-run 阶段的任意错误都会阻止整个批次执行。
 - 实际执行中如果发生文件系统错误，必须留下足够的 `.metadata.json` 映射信息用于回滚或人工恢复。
-- 执行文件重命名前写入 `pending` 状态的 `.metadata.json`，确保 `original_name` 到 `current_name` 的计划映射已经落盘。
+- 执行文件重命名前写入 `pending` 状态的 `.metadata.json`，确保 `original_name`、`current_name`、`planned_name` 映射已经落盘。
 
 性能：
 
@@ -138,6 +156,14 @@ Python 标准库应覆盖大部分当前版本能力：
 - 每次执行应输出摘要。
 - 失败时要能看到具体文件和原因。
 - 操作记录应便于后续回滚、审计和排查。
+
+结构化输出：
+
+- dry-run、rename、rollback、archive 都必须返回结构化计划对象。
+- 脚本可以把结构化计划渲染为终端摘要，但业务模块不能只返回文本。
+- 结构化计划必须包含 `items`、`warnings`、`errors`、`requires_confirmation`。
+- 涉及 `.metadata.json` 的操作必须包含 `metadata_changes`。
+- 涉及 sidecar 的操作必须能在计划中表达 sidecar 与 RAW/DNG 的归属关系。
 
 ## 风险与决策
 
@@ -161,15 +187,16 @@ Python 标准库应覆盖大部分当前版本能力：
 - 默认模板不强依赖相机型号。
 - 拍摄时间不可用时只能回退展示排序，不能生成依赖 `{date}` 的目标文件名。
 
-### Adobe sidecar 误匹配风险
+### Sidecar 误匹配风险
 
-同名 `.xmp`、`.acr` 可能是相关文件，也可能只是恰好同名。
+同 stem 的 `.xmp`、`.acr`、`.jpg`、`.jpeg` 可能是相关文件，也可能只是恰好同名。
 
 决策：
 
 - `.xmp` 默认同步。
-- `.acr` 默认同步。
-- 机内直出 JPEG 可识别，但不作为当前版本默认 sidecar 同步要求。
+- `.acr` 默认同步；它是新版本 Adobe 工作流可能稳定产生的 sidecar，但不要求每张照片都存在。
+- 与 RAW/DNG 同 stem 的 `.jpg`、`.jpeg` 作为机内 JPEG sidecar 默认同步。
+- 不匹配 RAW/DNG stem 的 JPEG 不参与当前版本重命名。
 - 视频文件不参与当前版本命名，但架构保留视频管理能力。
 - 允许按扩展名配置同步策略。
 

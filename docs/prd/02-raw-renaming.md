@@ -2,7 +2,7 @@
 
 ## 目标
 
-根据已经分类好的目录，批量重命名目录下的 RAW/DNG 文件，并支持用户自定义命名格式。这个功能是整个工作流的核心，因为它决定了后续 Lightroom 引用、Adobe sidecar 和原始素材归档包的可追踪性。
+根据已经分类好的目录，批量重命名目录下的 RAW/DNG 文件，并支持用户自定义命名格式。这个功能是整个工作流的核心，因为它决定了后续 Lightroom 引用、sidecar 和原始素材归档包的可追踪性。
 
 ## 工作目录契约
 
@@ -41,7 +41,13 @@
 
 扩展名匹配必须大小写不敏感，但重命名后保留原扩展名大小写。
 
-`.dng` 不能简单视为统一类型。DJI DNG 和 Adobe DNG 可能有不同来源、元数据结构和命名规则。当前版本只明确支持 DJI DNG；遇到无法确认来源的 DNG，应在 dry-run 中给出警告或阻止执行。
+`.dng` 不能简单视为统一类型。DJI DNG 和 Adobe DNG 可能有不同来源、元数据结构和命名规则。当前版本只明确支持 DJI DNG。
+
+DJI DNG 识别依据：
+
+- ExifTool 的 `FileType` 应为 `DNG`。
+- ExifTool 的 `Make` 或 `Model` 应能识别为 DJI。
+- 如果 `.dng` 无法确认为 DJI 来源，当前版本默认不处理，并在 dry-run 中列为不支持文件；如果本次目录没有其他支持的 RAW/DNG，则阻止执行。
 
 ## 元数据读取方案
 
@@ -102,7 +108,7 @@ FileModifyDate
 
 - 用真实 Sony `.ARW` 文件验证可以读出拍摄时间。
 - 用真实 DJI `.DNG` 文件验证可以读出拍摄时间。
-- 如果某个文件无法读出拍摄时间，dry-run 必须列出该文件，并阻止默认重命名。
+- 如果 RAW/DNG 无法读出拍摄时间，dry-run 必须列出该文件并阻止默认重命名。错误信息需要明确提示该文件元数据异常，可能是文件损坏、拷贝不完整或不是当前版本支持的 RAW/DNG。
 
 ## 命名模板
 
@@ -169,7 +175,7 @@ DSC00001.ARW -> 20260101-上海东方明珠-080002_DSC00001.ARW
 
 - 扫描到的 RAW 数量。
 - 扫描到的照片目录数量。
-- 将被同步重命名的 Adobe sidecar 数量。
+- 将被同步重命名的 sidecar 数量。
 - 冲突文件列表。
 - 无法读取元数据的文件列表。
 - 最终输出目录。
@@ -179,6 +185,10 @@ DSC00001.ARW -> 20260101-上海东方明珠-080002_DSC00001.ARW
 实际执行前必须先完成一次 dry-run。dry-run 发现任何错误时，实际执行必须停止，用户修正错误后才能重新执行。
 
 实际执行还必须二次确认。脚本需要展示摘要并要求用户输入确认；只有用户明确确认后才能修改文件。`--yes` 可以作为显式跳过交互确认的高级参数，但不能跳过 dry-run 计划校验。
+
+dry-run 必须同时提供结构化计划和面向人的摘要。结构化计划用于未来电脑 Web 端、macOS 端和 iOS 端复用。
+
+结构化计划字段契约属于 TDD 范围，详见 `docs/tdd/README.md`。
 
 ## 冲突检测
 
@@ -198,15 +208,16 @@ DSC00001.ARW -> 20260101-上海东方明珠-080002_DSC00001.ARW
 - 目录名包含空格、特殊符号或过长。
 - 文件扩展名不在支持列表里，但疑似 RAW 文件。
 
-## Adobe sidecar 策略
+## Sidecar 策略
 
-RAW/DNG 文件可能存在同名 Adobe sidecar 文件。当前版本以 Lightroom 工作流为目标，必须支持 Adobe sidecar 的同步重命名。
+RAW/DNG 文件可能存在同 stem 的 sidecar 文件。当前版本以 Lightroom 工作流为目标，必须支持 `.xmp`、`.acr`，以及与 RAW/DNG 同 stem 的机内 JPEG 同步重命名。
 
 示例：
 
 ```text
 DSC00000.ARW
 DSC00000.XMP
+DSC00000.JPG
 ```
 
 当 RAW 被重命名为：
@@ -215,10 +226,11 @@ DSC00000.XMP
 20260101-上海东方明珠-080001_DSC00000.ARW
 ```
 
-Adobe sidecar 应同步变为：
+Sidecar 应同步变为：
 
 ```text
 20260101-上海东方明珠-080001_DSC00000.XMP
+20260101-上海东方明珠-080001_DSC00000.JPG
 ```
 
 默认同步扩展名：
@@ -226,15 +238,26 @@ Adobe sidecar 应同步变为：
 ```text
 .xmp
 .acr
+.jpg
+.jpeg
 ```
 
-Adobe sidecar 扩展名也需要写入枚举，并标注用途：
+Sidecar 扩展名也需要写入枚举，并标注用途：
 
 | 枚举值 | 扩展名 | 用途 | 当前版本行为 |
 | --- | --- | --- | --- |
 | `ADOBE_XMP` | `.xmp` | Adobe sidecar | 自动同步 |
-| `ADOBE_ACR` | `.acr` | Adobe Camera Raw sidecar | 自动同步 |
-| `CAMERA_JPEG` | `.jpg` / `.jpeg` | 机内直出 JPEG，不属于 Adobe sidecar | 可识别，但不作为当前版本默认 sidecar 要求 |
+| `ADOBE_ACR` | `.acr` | Adobe Camera Raw sidecar，新版本 Adobe 工作流可能稳定产生 | 存在且与 RAW/DNG 同 stem 时自动同步；不要求每张照片都存在 |
+| `CAMERA_JPEG` | `.jpg` / `.jpeg` | 机内 JPEG sidecar | 与 RAW/DNG 同 stem 时自动同步；孤立 JPEG 不独立处理 |
+
+匹配规则：
+
+- Sidecar 只按文件 stem 与 RAW/DNG 匹配，例如 `DSC00000.ARW` 匹配 `DSC00000.XMP`、`DSC00000.JPG`。
+- 扩展名匹配大小写不敏感，但 stem 匹配大小写敏感；例如 `DSC00000.ARW` 不匹配 `dsc00000.JPG`。
+- 重命名后保留原扩展名大小写。
+- `.acr` 是新版本 Adobe 工作流可能产生的 sidecar，存在时必须跟随 RAW/DNG 同步；不存在不视为错误。
+- `.jpg`、`.jpeg` 只有在与已支持 RAW/DNG 同 stem 时才作为 sidecar；不匹配 RAW/DNG 的 JPEG 不参与当前版本重命名。
+- 如果同一个 stem 下存在多个 RAW/DNG 源文件，dry-run 必须报错并要求用户手工处理，不能猜测 sidecar 归属。
 
 视频文件不定义命名规则，不参与自动重命名。架构保留视频文件管理能力，视频应以独立规则处理 `.mov`、`.mp4`、`.wav` 等文件。
 
@@ -307,7 +330,7 @@ Adobe sidecar 扩展名也需要写入枚举，并标注用途：
 
 每个照片目录可以包含一个由本工作流管理的 `.metadata.json`，用于保存当前目录的命名配置、处理状态和原始文件映射。该文件用于简化长期管理：批量输入只需要指定目录，目录自己的命名偏好跟随目录保存。
 
-`.metadata.json` 是目录级元数据规范。同一个目录下的所有照片源文件和 Adobe sidecar 必须严格遵守同一套配置，不允许对单个文件设置例外规则。
+`.metadata.json` 是目录级元数据规范。同一个目录下的所有照片源文件和 sidecar 必须严格遵守同一套配置，不允许对单个文件设置例外规则。
 
 建议文件名：
 
@@ -335,15 +358,25 @@ Adobe sidecar 扩展名也需要写入枚举，并标注用途：
 | `status` | string | 否 | `configured` | 目录处理状态，例如 `configured`、`pending`、`renamed`、`rolled_back` |
 | `created_at` | datetime | 否 | 无 | 元数据文件创建时间 |
 | `updated_at` | datetime | 否 | 无 | 最近一次由工具更新的时间 |
-| `files` | list[object] | 否 | `[]` | 原始文件名和当前工作流文件名的映射 |
+| `files` | list[object] | 否 | `[]` | 原始文件名、当前真实文件名和 pending 目标名的映射 |
+
+版本兼容策略：
+
+- 当前版本只写入 `version = 1`。
+- 读取 `.metadata.json` 时必须校验 `version`。
+- 缺少 `version`、版本不是整数、版本大于当前支持版本、或版本格式无法识别时，dry-run 必须报错并阻止执行。
+- 当前版本不做自动迁移，因为尚未存在历史 schema。
+- 后续如果引入 schema 迁移，必须先在 dry-run 中展示迁移计划，实际写入前要求用户确认，并保留回滚依据。
 
 `files` 每一项的模型契约：
 
 | 字段 | 类型 | 必填 | 默认值 | 说明 |
 | --- | --- | --- | --- | --- |
 | `original_name` | string | 是 | 无 | 第一次执行时记录的原始文件名 |
-| `current_name` | string | 是 | 无 | 当前或 `pending` 状态下计划由工作流管理的文件名 |
+| `current_name` | string | 是 | 无 | 文件系统中当前真实存在的文件名 |
+| `planned_name` | string | 否 | 无 | `pending` 状态下计划重命名的目标文件名，执行成功后移除 |
 | `role` | string | 是 | 无 | 文件角色，例如 `raw`、`sidecar` |
+| `status` | string | 是 | 无 | 文件处理状态，例如 `pending`、`renamed`、`failed`、`rolled_back` |
 
 示例：
 
@@ -352,19 +385,30 @@ Adobe sidecar 扩展名也需要写入枚举，并标注用途：
   "version": 1,
   "title": "上海东方明珠",
   "template": "{date:YYYYMMDD}-{title}-{date:HHMMSS}_{original}",
-  "status": "configured",
+  "status": "pending",
   "created_at": "2026-01-01T08:00:01+08:00",
   "updated_at": "2026-01-01T08:00:01+08:00",
   "files": [
     {
       "original_name": "DSC00000.ARW",
-      "current_name": "20260101-上海东方明珠-080001_DSC00000.ARW",
-      "role": "raw"
+      "current_name": "DSC00000.ARW",
+      "planned_name": "20260101-上海东方明珠-080001_DSC00000.ARW",
+      "role": "raw",
+      "status": "pending"
     },
     {
       "original_name": "DSC00000.XMP",
-      "current_name": "20260101-上海东方明珠-080001_DSC00000.XMP",
-      "role": "sidecar"
+      "current_name": "DSC00000.XMP",
+      "planned_name": "20260101-上海东方明珠-080001_DSC00000.XMP",
+      "role": "sidecar",
+      "status": "pending"
+    },
+    {
+      "original_name": "DSC00000.JPG",
+      "current_name": "DSC00000.JPG",
+      "planned_name": "20260101-上海东方明珠-080001_DSC00000.JPG",
+      "role": "sidecar",
+      "status": "pending"
     }
   ]
 }
@@ -377,14 +421,17 @@ Adobe sidecar 扩展名也需要写入枚举，并标注用途：
 - 命令行或批量输入中的目录级 `title` / `template` 可以显式覆盖 `.metadata.json`；覆盖必须在 dry-run 中展示，并在实际执行成功后写回 `.metadata.json`。
 - 显式覆盖已有 `title` / `template` 时，工具必须对该目录执行全目录重新规划，不能只影响新增文件。
 - 如果 `.metadata.json` 不存在，工具按批量输入或默认规则生成重命名计划，并在 dry-run 中展示将创建该文件。
-- 实际重命名前，工具必须先写入或更新 `.metadata.json` 为 `pending` 状态，并保证 `original_name` 到 `current_name` 的计划映射已经落盘。
-- 文件 rename 成功后，工具再把 `.metadata.json` 更新为 `renamed` 状态。
+- 实际重命名前，工具必须先写入或更新 `.metadata.json` 为 `pending` 状态，并保证 `original_name`、`current_name`、`planned_name` 的计划映射已经落盘。
+- `current_name` 必须始终表示文件系统中当前真实存在的文件名，不能用来表达未来目标名。
+- `planned_name` 只表示 `pending` 状态下的目标文件名；文件 rename 成功后，工具必须把 `current_name` 更新为目标文件名，并移除该条目的 `planned_name`。
+- 文件 rename 成功后，工具再把 `.metadata.json` 的目录状态更新为 `renamed`，并把相关文件条目的 `status` 更新为 `renamed`。
+- 如果实际执行中途失败，已经成功 rename 的文件条目必须尽量更新 `current_name` 和 `status`；失败条目保留当前真实文件名，并标记为 `failed`，以支持回滚或人工恢复。
 - `.metadata.json` 由本工作流产生和维护，用户可以手工编辑，但格式错误会阻止执行。
 - `.metadata.json` 不记录单个文件的命名规则，不允许出现 per-file 配置。
-- 同一目录内的 RAW/DNG、`.xmp`、`.acr` 必须使用同一个 `title`、`template` 和日期格式规则。
+- 同一目录内的 RAW/DNG 及其同 stem 的 `.xmp`、`.acr`、`.jpg`、`.jpeg` 必须使用同一个 `title`、`template` 和日期格式规则。
 - 如果工具发现同一目录内存在不符合 `.metadata.json` 规范的已命名文件，dry-run 必须报告偏差；默认阻止继续执行，直到用户修正文件或显式执行回滚/重新规划。
 - `files` 映射在文件第一次纳入工作流时写入。`original_name` 必须表示该文件第一次被工作流接管时的真实原始文件名，不能随着后续重命名而改变。
-- 后续全目录重规划允许更新既有条目的 `current_name`，但不得修改既有条目的 `original_name`。
+- 后续全目录重规划允许在 `pending` 状态更新既有条目的 `planned_name`，并在执行成功后更新 `current_name`，但不得修改既有条目的 `original_name`。
 - 后续如果发现新增照片，只能追加新的 `files` 条目，不能删除或重建已有条目。
 - 回滚必须使用 `.metadata.json` 中的 `files` 映射，将 `current_name` 恢复为 `original_name`。
 
@@ -434,12 +481,20 @@ Adobe sidecar 扩展名也需要写入枚举，并标注用途：
     {
       "original_name": "DSC00000.ARW",
       "current_name": "20260101-上海东方明珠-080001_DSC00000.ARW",
-      "role": "raw"
+      "role": "raw",
+      "status": "renamed"
     },
     {
       "original_name": "DSC00000.XMP",
       "current_name": "20260101-上海东方明珠-080001_DSC00000.XMP",
-      "role": "sidecar"
+      "role": "sidecar",
+      "status": "renamed"
+    },
+    {
+      "original_name": "DSC00000.JPG",
+      "current_name": "20260101-上海东方明珠-080001_DSC00000.JPG",
+      "role": "sidecar",
+      "status": "renamed"
     }
   ]
 }
@@ -453,9 +508,10 @@ Adobe sidecar 扩展名也需要写入枚举，并标注用途：
 
 - 回滚脚本读取指定目录的 `.metadata.json`。
 - 对每个 `files` 条目，将 `current_name` 恢复为 `original_name`。
+- 如果存在 `planned_name` 但 `current_name` 仍等于 `original_name`，说明该文件尚未实际重命名，回滚时只清理 `planned_name` 并更新状态。
 - 如果 `files` 映射缺失，禁止回滚。
 - 如果 `current_name` 不存在，或 `original_name` 已存在且不是当前映射的一部分，dry-run 必须报错并阻止执行。
-- 回滚不会删除 `.metadata.json`；回滚完成后更新 `status` 和 `updated_at`。
+- 回滚不会删除 `.metadata.json`；回滚完成后更新目录级 `status`、文件级 `status`、`current_name` 和 `updated_at`。
 
 回滚执行方式：
 
@@ -470,7 +526,7 @@ uv run python scripts/rollback.py ./20260101-上海东方明珠 --dry-run
 mock 模式要求：
 
 - 不执行任何实际文件操作。
-- 输出完整计划，包括重命名、Adobe sidecar 同步、`.metadata.json` 创建或更新。
+- 输出完整计划，包括重命名、sidecar 同步、`.metadata.json` 创建或更新。
 - 支持模拟错误，例如文件不存在、权限不足、磁盘空间不足、目标路径已存在、ExifTool 读取失败。
 - mock 模式可以与 dry-run 同时使用；mock 主要用于模拟环境和错误，dry-run 主要用于展示真实计划。
 
@@ -483,6 +539,6 @@ mock 模式要求：
 - 工具实际执行前必须已经完成 dry-run 校验，并获得用户确认。
 - 发生命名冲突时，不修改任何文件。
 - dry-run 阶段发现任意错误都会阻止整个批次执行；实际执行中如果出现文件系统错误，必须保留 `.metadata.json` 映射用于回滚或人工恢复。
-- 执行成功后，RAW 和已识别 Adobe sidecar 都完成重命名。
+- 执行成功后，RAW/DNG 和已识别 sidecar 都完成重命名。
 - 执行成功后，照片目录写入或更新 `.metadata.json`。
-- 执行成功后，目录下 `.metadata.json` 包含可用于回滚的文件映射，其中 `original_name` 不可变。
+- 执行成功后，目录下 `.metadata.json` 包含可用于回滚的文件映射，其中 `original_name` 不可变，`current_name` 表示真实当前文件名。

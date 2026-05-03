@@ -11,7 +11,7 @@
 工具负责：
 
 - 提醒用户在重命名完成后再导入 Lightroom。
-- 管理 RAW/DNG 及其 Adobe sidecar 的命名一致性。
+- 管理 RAW/DNG 及其 sidecar 的命名一致性。
 - 可选地归档原始素材目录。
 
 工具不负责：
@@ -43,10 +43,20 @@ Lightroom 导出后的文件由用户自行处理。典型流程是：
 
 ## 归档输入
 
+当前版本的归档单位是用户传入的目录整体。工具不自动按照片目录拆分多个 ZIP，也不替用户决定归档粒度。
+
+示例：
+
+```text
+uv run python scripts/archive.py ./Photograph-Raw/Travel/Shanghai --output /Volumes/Archive/Photos
+```
+
+该命令会把 `Shanghai` 目录整体压缩为一个 ZIP，并保留 `Shanghai` 目录下的内部层级。目录内可以包含多个照片目录和多个 `.metadata.json`。
+
 默认纳入归档：
 
 - RAW/DNG 原始照片文件。
-- Adobe sidecar 文件，例如 `.xmp`、`.acr`。
+- Sidecar 文件，例如 `.xmp`、`.acr`，以及与 RAW/DNG 同 stem 的 `.jpg`、`.jpeg`。
 - 每个照片目录下的 `.metadata.json`。
 - 用户手写的说明文件，例如 `README.md`、`notes.md`。
 
@@ -59,6 +69,21 @@ Lightroom 导出后的文件由用户自行处理。典型流程是：
 - 已存在的历史压缩包。
 - 可重新生成的预览缓存。
 
+预定义排除规则：
+
+- macOS 系统文件：`.DS_Store`、`._*`、`.Spotlight-V100`、`.Trashes`、`.fseventsd`
+- Windows 系统文件：`Thumbs.db`、`desktop.ini`
+- 临时文件：`*.tmp`、`*.temp`、`*.swp`、`*.part`
+- 归档产物：`*.zip`、`*.7z`、`*.rar`
+- 可重新生成缓存：`*.lrdata`
+
+隐藏文件策略：
+
+- 不按“所有 dotfile”整体排除。
+- `.metadata.json` 必须始终纳入归档。
+- 其他 dotfile 默认纳入归档，除非命中预定义或用户配置的 exclude 规则。
+- 默认排除规则必须可配置。
+
 ## 归档包命名
 
 默认模板：
@@ -70,22 +95,48 @@ Lightroom 导出后的文件由用户自行处理。典型流程是：
 示例：
 
 ```text
-20260101-Shanghai_Oriental_Pearl~20260101080001.zip
+Shanghai~20260101080001.zip
 ```
 
 推荐 token：
 
 | Token | 含义 | 示例 |
 | --- | --- | --- |
-| `{folder}` | 项目目录名 | `20260101-Shanghai_Oriental_Pearl` |
+| `{folder}` | 用户传入目录的目录名 | `Shanghai` |
 | `{archived_at}` | 归档时间，紧凑日期时间格式 | `20260101080001` |
 
 归档命名要求：
 
 - 不修改原始目录名称。
-- 压缩包文件名在原始目录名后追加 `~{archived_at}`。
+- 压缩包文件名在用户传入目录名后追加 `~{archived_at}`。
 - `archived_at` 使用归档执行时刻，精确到秒，用于区分同一目录的多次归档。
 - 如果生成后的目标 ZIP 路径仍然已存在，默认阻止覆盖。
+- 如果用户希望单个照片目录单独打包，需要显式把该照片目录作为 archive 输入。
+
+## 手动压缩辅助
+
+如果用户在电脑端更倾向于使用系统压缩、Keka 等桌面压缩工具手动打包，当前工具仍应提供归档命名辅助能力。
+
+命名辅助只做一件事：根据用户选择的目录生成带时间戳的推荐压缩包文件名，不执行压缩。
+
+示例：
+
+```text
+uv run python scripts/archive_name.py ./Photograph-Raw/Travel/Shanghai
+```
+
+输出：
+
+```text
+Shanghai~20260101080001.zip
+```
+
+产品要求：
+
+- 命名辅助必须复用归档包命名规则。
+- 默认追加 `~{archived_at}`，不修改原始目录名称。
+- 如果目标文件名已存在，应生成错误或提示用户重新生成时间戳。
+- 后续电脑 Web 端、macOS 端可以把该能力做成“复制推荐压缩包名称”。
 
 ## 归档位置
 
@@ -102,11 +153,12 @@ Lightroom 导出后的文件由用户自行处理。典型流程是：
 
 - 项目目录路径。
 - 归档输出路径。
+- 归档单位，即用户传入的目录整体。
 - 将纳入归档的文件数量。
 - 将纳入归档的总大小。
 - 被排除的文件数量。
 - RAW 文件数量。
-- Adobe sidecar 数量。
+- Sidecar 数量。
 
 阻塞条件：
 
@@ -139,6 +191,8 @@ Lightroom 导出后的文件由用户自行处理。典型流程是：
 ## 验收标准
 
 - 用户可以指定项目目录和归档输出位置。
+- 工具按用户传入目录整体生成一个 ZIP，不自动按照片目录拆分。
+- 工具可以只生成带归档时间的推荐压缩包名称，支持用户手动压缩。
 - 工具可以在压缩前展示归档计划。
 - 默认不会覆盖已有压缩包。
 - 压缩完成后可以确认归档包存在且内容数量符合计划。

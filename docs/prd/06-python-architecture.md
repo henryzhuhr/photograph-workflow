@@ -64,7 +64,8 @@ uv run python scripts/archive.py <project-dir> --dry-run
 │   ├── scan.py
 │   ├── rename.py
 │   ├── rollback.py
-│   └── archive.py
+│   ├── archive.py
+│   └── archive_name.py
 ├── src
 │   └── photograph_workflow
 │       ├── __init__.py
@@ -98,7 +99,7 @@ uv run python scripts/archive.py <project-dir> --dry-run
 
 ## 模块职责
 
-`scripts/scan.py`、`scripts/rename.py`、`scripts/rollback.py`、`scripts/archive.py`：
+`scripts/scan.py`、`scripts/rename.py`、`scripts/rollback.py`、`scripts/archive.py`、`scripts/archive_name.py`：
 
 - 使用 `argparse` 解析脚本参数。
 - 调用 `src/photograph_workflow/` 中的业务模块。
@@ -112,9 +113,11 @@ uv run python scripts/archive.py <project-dir> --dry-run
 
 `extensions.py`：
 
-- 定义照片源文件、Adobe sidecar、其他素材和视频类型的枚举。
+- 定义照片源文件、sidecar、其他素材和视频类型的枚举。
 - 扩展名匹配大小写不敏感。
 - 只处理枚举中明确支持的类型。
+- sidecar 匹配基于文件 stem，stem 大小写敏感，扩展名匹配大小写不敏感但重命名后保留原扩展名大小写。
+- 如果同一 stem 下存在多个 RAW/DNG 源文件，阻止执行并要求用户手工处理。
 
 `scanner.py`：
 
@@ -132,6 +135,7 @@ uv run python scripts/archive.py <project-dir> --dry-run
 - 检测项目环境中的 ExifTool 能力是否可用。
 - 批量调用 `exiftool -json`。
 - 解析拍摄时间、相机型号、文件类型等字段。
+- 对 `.dng` 读取 `FileType`、`Make`、`Model`，用于确认 DJI DNG 来源。
 - 只读元数据，不写 RAW/DNG。
 
 `naming/template.py`：
@@ -153,6 +157,8 @@ uv run python scripts/archive.py <project-dir> --dry-run
 - 根据扫描结果、元数据和模板生成重命名计划。
 - 检测目标名冲突。
 - 检测目标文件是否已存在。
+- 检测 sidecar 与 RAW/DNG 的同 stem 归属关系。
+- 检测未知来源 DNG 和同 stem 多 RAW/DNG 冲突。
 - 检测照片目录下 `.metadata.json` 是否可写。
 - 生成 dry-run 输出数据。
 
@@ -160,16 +166,19 @@ uv run python scripts/archive.py <project-dir> --dry-run
 
 - 读取照片目录下 `.metadata.json` 的 `files` 映射。
 - 生成回滚计划。
-- 检测当前文件是否存在、原始目标是否冲突。
+- 检测 `current_name` 是否存在、`original_name` 目标是否冲突。
+- 对仍处于 `pending` 且尚未实际重命名的条目，只生成清理 `planned_name` 和状态更新的计划。
 - 支持 dry-run。
 
 `operations/rename.py`：
 
 - 执行已验证的重命名计划。
-- 同步处理 `.xmp`、`.acr` 等 Adobe sidecar 文件。
+- 同步处理与 RAW/DNG 同 stem 的 `.xmp`、`.acr`、`.jpg`、`.jpeg` 等 sidecar 文件。
 - 执行文件 rename 前，先写入或更新照片目录下 `pending` 状态的 `.metadata.json`。
 - 文件 rename 成功后，再把 `.metadata.json` 更新为 `renamed` 状态。
-- 首次纳入工作流的文件必须写入不可变的 `original_name` 和可变的 `current_name`。
+- 首次纳入工作流的文件必须写入不可变的 `original_name`、表示真实当前文件名的 `current_name`，以及 `pending` 状态下的 `planned_name`。
+- 文件 rename 成功后，必须把 `current_name` 更新为目标文件名，并移除对应条目的 `planned_name`。
+- 如果实际执行中途失败，必须尽量把已经成功 rename 的条目更新为真实 `current_name`，并把失败条目标记为 `failed`。
 
 `operations/rollback.py`：
 
@@ -179,7 +188,10 @@ uv run python scripts/archive.py <project-dir> --dry-run
 `operations/archive.py`：
 
 - 生成归档计划。
-- 创建 ZIP 文件，文件名使用原始目录名加 `~YYYYMMDDHHMMSS` 归档时间后缀。
+- 按用户传入的目录整体创建单个 ZIP，不自动按照片目录拆分。
+- ZIP 内保留用户传入目录下的内部层级。
+- 创建 ZIP 文件，文件名使用用户传入目录名加 `~YYYYMMDDHHMMSS` 归档时间后缀。
+- 支持只生成推荐归档包名称，不执行压缩，用于用户手动压缩。
 - 校验归档结果。
 - 不生成额外归档记录文件，不把归档结果写回 `.metadata.json`。
 
@@ -200,6 +212,12 @@ uv run python scripts/archive.py <project-dir> --dry-run
 - 读写照片目录下的 `.metadata.json`。
 - 记录目录级 rename 状态。
 - 为后续 rollback 提供不可变原始文件映射。
+- 校验 `.metadata.json` 的 `version`，当前只支持 `version = 1`。
+- 遇到缺失版本、未知版本或未来版本时，dry-run 必须报错并阻止执行。
+
+## 结构化计划契约
+
+业务模块必须返回结构化计划对象，脚本层只负责把计划渲染成终端摘要。字段契约属于 TDD 范围，详见 `docs/tdd/README.md`。
 
 ## ExifTool 集成
 
@@ -238,18 +256,20 @@ DSC00000.ARW -> 20260101-上海东方明珠-080001_DSC00000.ARW
 处理流程：
 
 1. 扫描项目根目录。
-2. 找到所有支持的 RAW/DNG。
-3. 用 ExifTool 批量读取元数据。
-4. 按照片文件直接父目录分组。
-5. 从元数据提取拍摄日期时间，并按模板中的 `{date:<format>}` 输出。
-6. 展开模板生成目标名。
-7. 检测冲突。
-8. dry-run 展示计划。
-9. 确认照片目录下 `.metadata.json` 可写。
-10. 用户确认。
-11. 写入或更新 `pending` 状态的 `.metadata.json`。
-12. 执行文件系统 rename。
-13. 执行成功后更新 `.metadata.json` 为 `renamed` 状态。
+2. 按扩展名找到候选照片源文件，例如 `.arw`、`.dng`。
+3. 用 ExifTool 批量读取候选文件元数据。
+4. 确认当前版本支持的 RAW/DNG：Sony `.arw` 作为支持源文件，`.dng` 必须确认 `FileType = DNG` 且 `Make` 或 `Model` 可识别为 DJI。
+5. 根据已确认支持的 RAW/DNG 按 stem 匹配 sidecar。
+6. 按照片文件直接父目录分组。
+7. 从元数据提取拍摄日期时间，并按模板中的 `{date:<format>}` 输出。
+8. 展开模板生成目标名。
+9. 检测冲突。
+10. dry-run 展示计划。
+11. 确认照片目录下 `.metadata.json` 可写。
+12. 用户确认。
+13. 写入或更新 `pending` 状态的 `.metadata.json`，其中 `current_name` 是真实当前文件名，`planned_name` 是目标文件名。
+14. 执行文件系统 rename。
+15. 执行成功后更新 `.metadata.json` 为 `renamed` 状态，将 `planned_name` 落到 `current_name` 并移除 `planned_name`。
 
 ## 错误处理
 
@@ -267,7 +287,7 @@ DSC00000.ARW -> 20260101-上海东方明珠-080001_DSC00000.ARW
 
 - 非照片文件被跳过。
 - 空目录被跳过。
-- 找到 Adobe sidecar 但策略未启用。
+- 找到 sidecar 但策略未启用。
 - 找到视频文件但当前版本不处理视频命名。
 
 ## 原子性与确认
@@ -282,7 +302,7 @@ DSC00000.ARW -> 20260101-上海东方明珠-080001_DSC00000.ARW
 6. 执行重命名。
 7. 更新 `.metadata.json` 为 `renamed` 状态。
 
-任意步骤失败都不能进入下一步。重命名执行时如果遇到错误，应停止并通过 `.metadata.json` 中已存在的文件映射支持回滚或人工恢复。
+任意步骤失败都不能进入下一步。重命名执行时如果遇到错误，应停止并通过 `.metadata.json` 中已存在的 `original_name`、`current_name`、`planned_name` 和文件级 `status` 支持回滚或人工恢复。
 
 ## 测试策略
 

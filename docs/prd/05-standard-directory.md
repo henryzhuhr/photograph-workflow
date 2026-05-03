@@ -42,6 +42,8 @@ Photograph-Raw/Travel/Shanghai/20260101-上海东方明珠/DSC00000.ARW
 
 Canon、Nikon、Fujifilm、Olympus、Panasonic 等格式可以保留枚举定义，但当前版本不默认处理。
 
+DJI `.DNG` 必须通过 ExifTool 元数据确认来源。当前版本以 `FileType = DNG` 且 `Make` 或 `Model` 可识别为 DJI 作为默认判断依据。无法确认来源的 `.dng` 不作为当前版本支持源文件处理。
+
 目录处理规则：
 
 - 不要求 RAW 或 DNG 必须放在 `raw/` 目录下。
@@ -159,7 +161,7 @@ ExifTool 字段优先级：
 6. `FileCreateDate`
 7. `FileModifyDate`
 
-如果无法得到时间戳，工具必须在 dry-run 中列出这些文件，并阻止执行或要求用户选择回退策略。
+如果 RAW/DNG 无法得到时间戳，工具必须在 dry-run 中列出这些文件并阻止执行。错误信息需要提示该文件元数据异常，可能是文件损坏、拷贝不完整或不是当前版本支持的 RAW/DNG。
 
 已确认的设计依据：
 
