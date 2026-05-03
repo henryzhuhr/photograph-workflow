@@ -18,9 +18,6 @@
 | `{relative_dir}` | 相对项目根目录路径 |
 | `{date}` | 默认 `YYYYMMDD` |
 | `{date:<format>}` | 显式日期时间格式 |
-| `{project_date}` | 项目日期 |
-| `{seq}` | 序号 |
-| `{seq:04}` | 固定位数序号 |
 | `{original}` | `.metadata.json` 首次记录的原始文件名，不含扩展名 |
 | `{camera}` | 相机型号 |
 
@@ -35,6 +32,8 @@
 - `YYYY-MM-DDTHH:mm:ss`
 
 模板解析失败、未知 token、非法日期格式、生成空文件名、生成非法文件名时，dry-run 必须报错并阻止执行。
+
+`{date}` 只来自 RAW/DNG 元数据中的拍摄时间。不允许回退到目录日期、文件系统创建时间、文件系统修改时间或当前时间。当前版本不支持 `{project_date}`、`{seq}`、`{seq:04}`。
 
 配置优先级从高到低：
 
@@ -63,9 +62,14 @@ rename 分为计划阶段和执行阶段。
 9. 展开目标文件名。
 10. 检测既有 `.metadata.json` 映射与当前文件系统是否一致。
 11. 检测冲突、非法文件名、目标路径存在、metadata 可写性。
-12. 返回结构化 RenamePlan。
+12. 发现明显后期软件相关文件时，加入 `post_processor_reference_risk` warning。
+13. 返回结构化 RenamePlan。
 
 如果发现同一目录内存在已由工作流接管、但不符合当前 `.metadata.json` 规范的文件，dry-run 必须报告偏差并默认阻止继续执行，直到用户修正文件或显式执行回滚/重新规划。
+
+如果命令行或批量输入显式覆盖已有 `.metadata.json` 中的 `title` / `template`，必须对该照片目录执行全目录重规划。重规划只更新 `planned_name`，不得删除既有条目，不得改写既有 `original_name`。
+
+如果扫描发现新增 RAW/DNG 或新增同 stem sidecar，只能追加新的 `.metadata.json.files` 条目。当前版本不提供自动清理失效条目的能力；未来如需清理，应单独设计 metadata repair/prune 操作。
 
 执行阶段：
 
@@ -99,4 +103,3 @@ rollback 只依赖 `.metadata.json`。
 3. 执行文件 rename。
 4. 更新 `current_name`、文件级 `status`、目录级 `status`、`updated_at`。
 5. 不删除 `.metadata.json`。
-

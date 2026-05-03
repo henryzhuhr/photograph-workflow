@@ -2,7 +2,7 @@
 
 ## Archive 流程
 
-当前归档单位是用户传入目录整体，不自动按照片目录拆分。
+当前归档单位是用户传入目录整体，不自动按照片目录拆分。archive 不关心目录里是否存在 Lightroom、Capture One 或其他后期软件相关文件；未命中默认或用户自定义 exclude 的文件会随目录一起归档。
 
 输入：
 
@@ -20,13 +20,14 @@
 5. 统计文件数量、总大小、RAW/DNG 数量、sidecar 数量、排除数量。
 6. 检查输出目录可写和目标 ZIP 是否存在。
 7. 如果目标 ZIP 已存在且未显式允许覆盖，返回阻塞错误。
-8. 如果存在已重命名照片但对应目录缺少 `.metadata.json`，返回非阻塞警告。
-9. 返回结构化 ArchivePlan。
+8. 如果 `overwrite = true`，计划仍必须设置 `requires_confirmation = true`。
+9. 如果存在已重命名照片但对应目录缺少 `.metadata.json`，返回非阻塞警告。
+10. 返回结构化 ArchivePlan。
 
 执行阶段：
 
 1. 要求 dry-run 无错误。
-2. 用户确认。
+2. 用户确认；覆盖已有 ZIP 时必须二次确认。
 3. 使用 `zipfile` 创建 ZIP。
 4. 保留用户传入目录下的内部层级。
 5. 校验 ZIP 存在、大小大于 0、文件数量符合计划。
@@ -65,6 +66,7 @@
 - `archive_name`
 - 可选 `archive_path`
 - `archived_at`
+- 如果提供 `output_dir` 且推荐 `archive_path` 已存在，返回 `archive_name_target_exists` warning，不阻止输出名称。
 
 命名规则：
 
@@ -77,4 +79,3 @@
 ```text
 Shanghai~20260101080001.zip
 ```
-

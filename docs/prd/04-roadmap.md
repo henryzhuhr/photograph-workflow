@@ -55,50 +55,15 @@ uv run python scripts/archive.py ./Photograph-Raw/Travel/Shanghai --output /Volu
 
 ## 配置文件
 
-当前版本不定义项目级配置文件。目录级配置和状态由每个照片目录下的 `.metadata.json` 管理；跨项目默认值可由全局配置管理。
+当前版本不定义通用全局配置文件，不支持 `~/.config/photograph-workflow/config.json`。命名模板、`strict`、目录标题和目录级模板通过命令行参数、批量输入 JSON 和照片目录下的 `.metadata.json` 管理。
 
-全局配置建议路径：
+当前版本只定义 workspace 持久化文件，用于保存用户选择过的常用工作目录：
 
 ```text
-~/.config/photograph-workflow/config.json
+~/.local/share/photograph-workflow/workspaces.json
 ```
 
-示例：
-
-```json
-{
-  "raw_extensions": [".arw", ".dng"],
-  "sidecar_extensions": [".xmp", ".acr", ".jpg", ".jpeg"],
-  "rename_template": "{date:YYYYMMDD}-{title}-{date:HHMMSS}_{original}",
-  "timestamp_source": "metadata",
-  "on_name_conflict": "fail",
-  "require_dry_run_before_apply": true,
-  "require_confirmation": true,
-  "sequence_scope": "per-directory",
-  "archive": {
-    "format": "zip",
-    "exclude": [
-      ".DS_Store",
-      "._*",
-      ".Spotlight-V100",
-      ".Trashes",
-      ".fseventsd",
-      "Thumbs.db",
-      "desktop.ini",
-      "*.tmp",
-      "*.temp",
-      "*.swp",
-      "*.part",
-      "*.zip",
-      "*.7z",
-      "*.rar",
-      "*.lrdata"
-    ],
-    "include_dotfiles_by_default": true,
-    "always_include": [".metadata.json"]
-  }
-}
-```
+未来 App 如果需要默认模板、默认归档目录、默认后期软件 profile 等偏好设置，再单独设计全局配置契约。
 
 ## 外部依赖
 
@@ -116,18 +81,17 @@ uv run python scripts/archive.py ./Photograph-Raw/Travel/Shanghai --output /Volu
 
 实现上不直接依赖某个只支持 JPEG 的 EXIF 包。Python 代码应通过一个 `MetadataReader` adapter 调用 ExifTool JSON 输出，避免把第三方命令调用散落在重命名逻辑里。
 
-Python 标准库应覆盖大部分当前版本能力：
+Python 标准库应覆盖大部分当前版本能力，结构化校验使用 Pydantic：
 
 - `argparse`：脚本参数解析。
 - `pathlib`：路径处理。
 - `enum`：目录、扩展名、文件角色枚举。
-- `dataclasses`：内部计划对象。
 - `json`：配置、操作记录和 ExifTool JSON 解析。
 - `subprocess`：调用 ExifTool。
 - `zipfile`：ZIP 归档。
 - `logging`：执行日志。
 
-当前版本默认不引入重量级运行时依赖。测试依赖可以使用 `pytest`。
+当前版本运行时依赖应保持轻量，明确需要 `pydantic`。测试依赖可以使用 `pytest`。
 
 ## 非功能需求
 

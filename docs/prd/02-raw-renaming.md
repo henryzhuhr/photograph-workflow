@@ -92,6 +92,8 @@ FileCreateDate
 FileModifyDate
 ```
 
+`FileCreateDate`、`FileModifyDate` 只可用于诊断展示，不能作为 `{date}` 的命名来源。
+
 拍摄时间优先级：
 
 1. `SubSecDateTimeOriginal`
@@ -99,10 +101,10 @@ FileModifyDate
 3. `SubSecCreateDate`
 4. `CreateDate`
 5. `ModifyDate`
-6. `FileCreateDate`
-7. `FileModifyDate`
 
-命名中的 `{date}` 默认使用相机记录的本地时间，不做时区转换。`OffsetTimeOriginal` 只作为后续跨时区校正能力的依据。
+命名中的 `{date}` 只使用相机写入 RAW/DNG 元数据中的拍摄时间，不做时区转换。`OffsetTimeOriginal` 只作为后续跨时区校正能力的依据。
+
+不允许把目录日期、文件系统创建时间、文件系统修改时间或当前时间作为 `{date}` 的自动回退来源。如果 RAW/DNG 无法读出可用拍摄时间，dry-run 必须报错并阻止处理。
 
 验收要求：
 
@@ -126,9 +128,6 @@ FileModifyDate
 | `{date:YYYYMMDD}` | 按指定格式输出拍摄日期 | `20260101` |
 | `{date:YYMMDD}` | 按指定格式输出拍摄日期 | `260101` |
 | `{date:HHMMSS}` | 按指定格式输出拍摄时间 | `080001` |
-| `{project_date}` | 项目日期，通常来自目录名或配置 | `20260101` |
-| `{seq}` | 序号 | `1` |
-| `{seq:04}` | 固定位数序号 | `0001` |
 | `{original}` | 原始文件名，不含扩展名 | `DSC00000` |
 | `{camera}` | 相机型号，来自元数据 | `ILCE-7M4` |
 
@@ -157,6 +156,7 @@ FileModifyDate
 - 当前不支持自然语言月份、星期、时区等格式。
 - 如果格式无法解析，或者格式中包含不支持的符号，dry-run 必须报错并阻止执行。
 - `{date:HHMMSS}` 取拍摄时间中的时分秒；不再单独提供 `{timestamp}` token。
+- 当前版本不支持 `{project_date}`、`{seq}`、`{seq:04}`。
 
 如果同一目录内存在同一秒拍摄的多张照片，`{original}` 可以避免单纯时间戳导致的撞名。工具仍必须在 dry-run 中做最终冲突检测，避免多机位、重复导入或异常文件造成目标名冲突。
 
@@ -276,6 +276,7 @@ Sidecar 扩展名也需要写入枚举，并标注用途：
 | `root` | path | 是 | 无 | 项目根目录，可以是绝对路径 |
 | `directories` | list[object] | 是 | 无 | 待处理目录配置列表，至少 1 项 |
 | `template` | string | 否 | `{date:YYYYMMDD}-{title}-{date:HHMMSS}_{original}` | 重命名模板 |
+| `strict` | boolean | 否 | `false` | 没有支持 RAW/DNG 的目录是否阻止执行 |
 
 `directories` 每一项的模型契约：
 

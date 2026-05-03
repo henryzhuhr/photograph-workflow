@@ -43,6 +43,14 @@
 | `failed` | 文件操作失败，需要回滚或人工处理 |
 | `rolled_back` | 文件已恢复到 `original_name` |
 
+### WorkspaceKind
+
+| 值 | 说明 |
+| --- | --- |
+| `local` | 本地工作目录 |
+| `icloud` | iCloud Drive 下的工作目录 |
+| `custom` | 用户自定义工作目录 |
+
 ## Pydantic 模型
 
 所有外部输入、`.metadata.json`、结构化计划、错误对象都使用 Pydantic `BaseModel` 校验。路径字段在模型层接收字符串或 path-like 输入，业务层统一转换为 `Path`。
@@ -55,6 +63,39 @@
 - 字段命名统一使用 snake_case。
 - 新增字段优先设计为可选字段，避免破坏旧版本客户端。
 
+### WorkspaceFile
+
+对应当前版本的用户级 workspace 配置文件：
+
+```text
+~/.local/share/photograph-workflow/workspaces.json
+```
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `version` | int | 是 | 当前只支持 `1` |
+| `workspaces` | list[`WorkspaceEntry`] | 是 | 用户保存过的工作目录 |
+| `default_workspace_id` | string | 否 | 默认工作目录 id |
+| `created_at` | datetime | 否 | 文件创建时间 |
+| `updated_at` | datetime | 否 | 最近更新时间 |
+
+### WorkspaceEntry
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `id` | string | 是 | 稳定唯一 id |
+| `name` | string | 是 | 展示名称 |
+| `path` | path | 是 | 工作目录路径 |
+| `kind` | WorkspaceKind | 是 | `local`、`icloud` 或 `custom` |
+| `created_at` | datetime | 否 | 创建时间 |
+| `updated_at` | datetime | 否 | 最近更新时间 |
+
+约束：
+
+- 显式传入 `root` 时，不要求必须命中已保存 workspace。
+- 未传入 `root` 时，可以从 `default_workspace_id` 或用户选择的 workspace 解析项目目录。
+- 当前版本不引入通用全局配置文件，workspace 文件只保存用户选择过的目录。
+
 ### BatchInput
 
 用于 `--input` JSON。
@@ -64,6 +105,7 @@
 | `root` | path | 是 | 项目根目录 |
 | `directories` | list[`DirectoryInput`] | 是 | 待处理目录，至少 1 项 |
 | `template` | string | 否 | 根级默认模板 |
+| `strict` | boolean | 否 | 默认 `false`，控制空目录或无支持源文件目录是否阻止执行 |
 
 校验规则：
 
@@ -72,6 +114,7 @@
 - `directories[].path` 必须是相对路径，不能包含 `..` 逃逸 `root`。
 - `root / directories[].path` 必须存在且是目录。
 - 输入只允许指定目录，不允许逐个指定照片文件。
+- 当目录没有支持的 RAW/DNG 时，`strict = false` 返回 warning；`strict = true` 返回 error。
 
 ### DirectoryInput
 
@@ -121,6 +164,9 @@
 - `original_name` 一旦写入，不得被重规划修改。
 - `current_name` 只能表示真实存在的当前文件名。
 - `planned_name` 只能表示 pending 目标名，成功后必须移除。
+- `files` 映射采用 append-only 原则；既有条目不能被自动删除、重建或改写 `original_name`。
+- 新发现的 RAW/DNG 或 sidecar 只能追加新条目。
+- `.metadata.json.files` 中存在但当前文件系统找不到的条目必须报告 `metadata_deviation`，默认阻止 rename。
 
 ## 结构化计划契约
 
@@ -220,8 +266,10 @@ ArchivePlan 继承 Common Plan，并补充归档级字段。
 | `invalid_filename` | error | 生成文件名非法 |
 | `metadata_version_unsupported` | error | `.metadata.json` 版本不支持 |
 | `metadata_write_failed` | error | `.metadata.json` 不可写或写入失败 |
+| `directory_no_supported_sources` | warning/error | 指定目录没有支持的 RAW/DNG；级别由 `strict` 决定 |
 | `sidecar_ambiguous` | error | 同 stem 多 RAW/DNG，sidecar 归属不明确 |
 | `archive_target_exists` | error | 目标 ZIP 已存在 |
-| `archive_no_raw` | error | 归档目录没有 RAW/DNG |
+| `archive_name_target_exists` | warning | `archive_name` 推荐目标已存在 |
 | `archive_missing_metadata` | warning | 存在已重命名照片但对应目录缺少 `.metadata.json` |
 | `metadata_deviation` | error | 文件系统状态与 `.metadata.json` 映射不一致 |
+| `post_processor_reference_risk` | warning | 发现后期软件相关文件，重命名可能导致引用丢失 |

@@ -18,6 +18,7 @@
 - 终端文本输出只是展示层，不能成为 Web/macOS/iOS 未来集成的解析依据。
 - 文件系统访问、ExifTool 调用、归档写入、用户确认和后期软件策略必须有可替换边界。
 - `.metadata.json` 是跨端共享的数据契约，字段命名、状态流转和版本兼容策略必须稳定。
+- 用户选择过的工作目录保存为 workspace 数据，便于脚本和未来 App 自动加载。
 
 ## 分层边界
 
@@ -28,7 +29,7 @@
 | `models` | Pydantic 数据契约、枚举、计划对象、错误对象 |
 | `domain` | 扫描分类、sidecar 匹配、命名模板、冲突校验、状态流转规则 |
 | `application` | 编排 scan、rename、rollback、archive 用例，返回结构化计划 |
-| `ports` | 文件系统、元数据读取、归档、时钟、确认、后期软件策略接口 |
+| `ports` | 工作区解析、文件系统、元数据读取、归档、时钟、确认、后期软件策略接口 |
 | `adapters` | ExifTool、本地文件系统、zipfile、终端脚本等具体实现 |
 
 依赖方向只能从外层指向内层。`domain` 不能依赖 `adapters`，脚本入口也不能承载业务规则。
@@ -61,6 +62,7 @@ uv run python scripts/archive.py <project-dir> --dry-run
 - 支持 Sony `.arw` 和可确认为 DJI 来源的 `.dng`。
 - 支持 Lightroom 工作流中的 `.xmp`、`.acr` 和同 stem 机内 JPEG sidecar。
 - 使用 `.metadata.json` 保存目录级配置、状态和原始文件映射。
+- 使用 `~/.local/share/photograph-workflow/workspaces.json` 保存用户选择过的工作目录。
 - 支持 dry-run、实际重命名、回滚、ZIP 归档和归档命名辅助。
 
 当前版本不实现：

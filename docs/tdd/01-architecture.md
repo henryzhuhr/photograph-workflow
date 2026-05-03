@@ -24,6 +24,7 @@
 - dry-run、rename、rollback、archive、archive_name 都返回结构化计划对象。
 - Web、macOS、iOS 或后续桌面端应该复用同一套计划对象和错误码，而不是解析命令行输出。
 - 当前版本只支持 Lightroom 工作流，但核心模型不得命名为 Lightroom 专用概念；`.xmp`、`.acr`、机内 JPEG 等规则应通过 sidecar 策略表达。
+- 用户选择过的工作目录需要以稳定契约保存，当前版本采用 Linux/XDG 风格路径，未来 App 复用同一契约。
 
 ## 分层边界
 
@@ -34,7 +35,7 @@
 | `models` | Pydantic 数据契约、枚举、计划对象、错误对象 | 标准库、Pydantic |
 | `domain` | 扫描分类、sidecar 匹配、命名模板、冲突校验、状态流转规则 | `models` |
 | `application` | 编排 scan、rename、rollback、archive 用例，返回结构化计划 | `models`、`domain`、`ports` |
-| `ports` | 文件系统、元数据读取、归档、时钟、确认、后期软件策略接口 | `models` |
+| `ports` | 工作区解析、文件系统、元数据读取、归档、时钟、确认、后期软件策略接口 | `models` |
 | `adapters` | ExifTool、本地文件系统、zipfile、终端脚本等具体实现 | `ports`、标准库、外部工具 |
 
 依赖方向只能从外层指向内层。`domain` 不能反向依赖 `adapters`，否则未来做 Web/macOS/iOS 时会被本地脚本实现锁死。
@@ -90,6 +91,7 @@ ExifTool 作为外部能力管理：
 │       │   └── extensions.py
 │       ├── ports
 │       │   ├── __init__.py
+│       │   ├── workspace_resolver.py
 │       │   ├── filesystem.py
 │       │   ├── metadata_reader.py
 │       │   ├── archive_writer.py
@@ -98,6 +100,7 @@ ExifTool 作为外部能力管理：
 │       │   └── post_processor.py
 │       ├── adapters
 │       │   ├── __init__.py
+│       │   ├── workspace_xdg.py
 │       │   ├── filesystem_local.py
 │       │   ├── metadata_exiftool.py
 │       │   ├── archive_zipfile.py
@@ -138,12 +141,25 @@ uv run python scripts/archive_name.py <root>
 
 脚本入口调用 `application` 层用例。用例返回结构化计划后，脚本再决定如何展示文本、是否请求用户确认、是否执行实际操作。
 
+## Workspace 持久化
+
+当前版本支持用户显式传入任意可访问的 `root` 路径，也支持保存用户选择过的常用工作目录。显式传入的 `root` 永远优先。
+
+工作目录配置使用 Linux/XDG 风格用户级数据目录：
+
+```text
+~/.local/share/photograph-workflow/workspaces.json
+```
+
+当前本地 adapter 负责读写这个文件。未来 Web、macOS、iOS 入口可以复用相同数据契约，但替换目录选择、权限授权和持久化 adapter。
+
 ## 端口设计
 
 核心用例通过端口访问外部能力：
 
 | 端口 | 当前适配器 | 未来替换方向 |
 | --- | --- | --- |
+| `WorkspaceResolverPort` | XDG workspace 文件 | macOS 安全书签、iOS document picker、Web 用户空间 |
 | `FileSystemPort` | 本地文件系统 | macOS sandbox 文件访问、安全书签、Web 后端存储 |
 | `MetadataReaderPort` | ExifTool JSON | 平台原生 metadata API、服务端 metadata worker |
 | `ArchiveWriterPort` | Python `zipfile` | Keka 集成、系统压缩服务、远端归档任务 |

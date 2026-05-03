@@ -13,8 +13,19 @@
 5. 孤立 JPEG 只统计为 `other`，不作为源照片处理。
 6. 空目录默认跳过。
 7. `TODO` 目录默认跳过，除非用户显式指定纳入处理。
+8. 发现明显后期软件相关文件时，不处理该文件，并在 rename dry-run 中返回 `post_processor_reference_risk` warning。
 
 扩展名匹配大小写不敏感，重命名后保留原始扩展名大小写。
+
+明显后期软件相关文件包括但不限于：
+
+- `*.lrcat`
+- `*.lrdata`
+- `*.lrtemplate`
+- `*.cosessiondb`
+- `*.cocatalogdb`
+
+这些文件不会被 rename 修改。archive 不对它们做特殊处理；如果未命中默认或用户自定义 exclude，则随用户传入目录一起归档。
 
 ## ExifTool 集成
 
@@ -53,10 +64,10 @@ FileModifyDate
 3. `SubSecCreateDate`
 4. `CreateDate`
 5. `ModifyDate`
-6. `FileCreateDate`
-7. `FileModifyDate`
 
-如果 RAW/DNG 无法读取可用拍摄时间，rename dry-run 必须阻止执行，并提示文件元数据异常，可能是文件损坏、拷贝不完整或不是当前版本支持的 RAW/DNG。
+`FileCreateDate`、`FileModifyDate` 只可用于诊断展示，不能作为 `{date}` 的命名来源。
+
+如果 RAW/DNG 无法从照片元数据读取可用拍摄时间，rename dry-run 必须阻止执行，并提示文件元数据异常，可能是文件损坏、拷贝不完整或不是当前版本支持的 RAW/DNG。不允许回退到目录日期、文件系统创建时间、文件系统修改时间或当前时间。
 
 DJI DNG 识别：
 
@@ -78,4 +89,3 @@ Sidecar 只能跟随已确认支持的 RAW/DNG，不独立处理。
 - 同一个 stem 下存在多个 RAW/DNG 源文件时，dry-run 必须报错，不能猜测归属。
 - `.acr` 存在时跟随同步，不存在不报错。
 - `.jpg`、`.jpeg` 只有与 RAW/DNG 同 stem 时作为 sidecar。
-
