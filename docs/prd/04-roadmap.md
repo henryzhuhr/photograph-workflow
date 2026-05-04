@@ -53,6 +53,8 @@ uv run python scripts/archive.py ./Photograph-Raw/Travel/Shanghai --output /Volu
 - 脚本只负责参数解析、用户确认和摘要展示，不承载不可复用的业务逻辑。
 - 后续多端应用可以复用同一套核心模块，并按平台替换文件选择、权限授权、进度展示和错误呈现方式。
 
+多端应用的推荐演进顺序是：先继续稳定 Python 脚本和核心逻辑，再建设本地 Web UI，然后包装或实现 macOS App，最后在数据契约稳定后建设 SwiftUI 原生 iOS App。详细路线见 [多端应用规划](./07-multi-platform-plan.md)。
+
 ## 配置文件
 
 当前版本不定义通用全局配置文件，不支持 `~/.config/photograph-workflow/config.json`。命名模板、`strict`、目录标题和目录级模板通过命令行参数、批量输入 JSON 和照片目录下的 `.metadata.json` 管理。

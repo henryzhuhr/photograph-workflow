@@ -41,3 +41,4 @@ TDD 记录当前版本的技术设计契约。PRD 只描述产品边界和用户
 | [05-archive.md](./05-archive.md) | ZIP 归档、手动压缩命名辅助、exclude 规则 |
 | [06-testing.md](./06-testing.md) | mock 后端、测试策略、实现顺序 |
 | [07-extensibility.md](./07-extensibility.md) | 多端应用、多后期软件和长期演进边界 |
+| [08-multi-platform-architecture.md](./08-multi-platform-architecture.md) | 脚本、Web UI、macOS App 和 iOS App 的长期技术路线 |

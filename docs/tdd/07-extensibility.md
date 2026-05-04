@@ -12,6 +12,8 @@
 
 当前版本不实现这些形态，但不能把核心规则写死在脚本、终端文本、Lightroom 术语或本地文件系统细节里。
 
+脚本、Web UI、macOS App 和 iOS App 的具体技术路线见 [08-multi-platform-architecture.md](./08-multi-platform-architecture.md)。
+
 ## 稳定核心
 
 以下规则属于长期稳定核心：
