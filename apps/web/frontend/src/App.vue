@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { api, type WorkspaceEntry } from './api'
+import { computed, onMounted, ref } from 'vue'
 import WorkspacePanel from './components/WorkspacePanel.vue'
 import ScanPanel from './components/ScanPanel.vue'
 import RenamePanel from './components/RenamePanel.vue'
@@ -7,14 +8,48 @@ import RollbackPanel from './components/RollbackPanel.vue'
 import ArchivePanel from './components/ArchivePanel.vue'
 
 const tabs = [
-  { id: 'workspace', label: 'Workspace' },
   { id: 'scan', label: 'Scan' },
   { id: 'rename', label: 'Rename' },
   { id: 'rollback', label: 'Rollback' },
   { id: 'archive', label: 'Archive' },
+  { id: 'workspace', label: 'Workspaces' },
 ] as const
 
-const activeTab = ref<string>('workspace')
+const activeTab = ref<string>('scan')
+const workspaces = ref<WorkspaceEntry[]>([])
+const selectedId = ref<string>('')
+const customPath = ref('')
+const workspaceLoaded = ref(false)
+
+const rootPath = computed(() => {
+  if (selectedId.value) {
+    const ws = workspaces.value.find((w) => w.id === selectedId.value)
+    return ws?.path ?? ''
+  }
+  return customPath.value
+})
+
+async function loadWorkspaces() {
+  try {
+    const data = await api.listWorkspaces()
+    workspaces.value = data.workspaces
+    if (data.default_workspace_id && workspaces.value.some((w) => w.id === data.default_workspace_id)) {
+      selectedId.value = data.default_workspace_id
+    } else if (workspaces.value.length > 0) {
+      selectedId.value = workspaces.value[0].id
+    }
+  } catch {
+    // workspaces unavailable — user can still type a path
+  } finally {
+    workspaceLoaded.value = true
+  }
+}
+
+function onWorkspaceChanged() {
+  // refresh workspace-related panels
+}
+
+onMounted(loadWorkspaces)
 </script>
 
 <template>
@@ -22,6 +57,32 @@ const activeTab = ref<string>('workspace')
     <header class="app-header">
       <h1>Photograph Workflow</h1>
     </header>
+
+    <!-- Workspace selector -->
+    <div class="ws-bar">
+      <label class="ws-label">Directory:</label>
+      <select v-model="selectedId" class="ws-select" @change="onWorkspaceChanged">
+        <option value="" disabled>Select a workspace...</option>
+        <option v-for="ws in workspaces" :key="ws.id" :value="ws.id">
+          {{ ws.name }} — {{ ws.path }}
+        </option>
+        <option value="">— Custom path —</option>
+      </select>
+      <input
+        v-if="!selectedId"
+        v-model="customPath"
+        type="text"
+        placeholder="Paste or type a directory path..."
+        class="ws-custom-input"
+      />
+      <span v-if="!workspaceLoaded" class="ws-hint">Loading...</span>
+      <span v-else-if="workspaces.length === 0 && !customPath" class="ws-hint">
+        Add a workspace below or enter a path.
+      </span>
+      <span v-else-if="rootPath" class="ws-hint mono">{{ rootPath }}</span>
+    </div>
+
+    <!-- Tab bar -->
     <nav class="tab-bar">
       <button
         v-for="tab in tabs"
@@ -32,12 +93,18 @@ const activeTab = ref<string>('workspace')
         {{ tab.label }}
       </button>
     </nav>
+
+    <!-- Panels -->
     <main class="main-content">
-      <WorkspacePanel v-if="activeTab === 'workspace'" />
-      <ScanPanel v-if="activeTab === 'scan'" />
-      <RenamePanel v-if="activeTab === 'rename'" />
-      <RollbackPanel v-if="activeTab === 'rollback'" />
-      <ArchivePanel v-if="activeTab === 'archive'" />
+      <ScanPanel v-if="activeTab === 'scan'" :root-path="rootPath" />
+      <RenamePanel v-if="activeTab === 'rename'" :root-path="rootPath" />
+      <RollbackPanel v-if="activeTab === 'rollback'" :root-path="rootPath" />
+      <ArchivePanel v-if="activeTab === 'archive'" :root-path="rootPath" />
+      <WorkspacePanel
+        v-if="activeTab === 'workspace'"
+        :workspaces="workspaces"
+        @updated="loadWorkspaces()"
+      />
     </main>
   </div>
 </template>
@@ -84,7 +151,7 @@ body {
 }
 
 .app-header {
-  padding: 24px 0 16px;
+  padding: 24px 0 12px;
 }
 
 .app-header h1 {
@@ -93,6 +160,65 @@ body {
   color: var(--text);
 }
 
+/* ---- Workspace bar ---- */
+.ws-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.ws-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.ws-select {
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  background: var(--surface);
+  min-width: 260px;
+  max-width: 400px;
+}
+
+.ws-select:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.ws-custom-input {
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.8125rem;
+  font-family: 'SF Mono', Menlo, Monaco, monospace;
+  min-width: 300px;
+  flex: 1;
+}
+
+.ws-custom-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+}
+
+.ws-hint {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+
+/* ---- Tab bar ---- */
 .tab-bar {
   display: flex;
   gap: 4px;
@@ -129,7 +255,7 @@ body {
   padding: 24px;
 }
 
-/* Shared form styles */
+/* ---- Shared form styles ---- */
 .panel h2 {
   font-size: 1.125rem;
   font-weight: 600;

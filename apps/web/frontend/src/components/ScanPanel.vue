@@ -1,11 +1,20 @@
 <script setup lang="ts">
 import { api, type CommonPlan, type ScanItem } from '../api'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 
-const root = ref('')
+const props = defineProps<{ rootPath: string }>()
+
+const root = ref(props.rootPath)
 const result = ref<CommonPlan | null>(null)
 const loading = ref(false)
 const error = ref('')
+
+watch(
+  () => props.rootPath,
+  (val) => {
+    root.value = val
+  },
+)
 
 async function doScan() {
   if (!root.value.trim()) return

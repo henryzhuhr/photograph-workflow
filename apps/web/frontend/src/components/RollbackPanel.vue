@@ -1,12 +1,21 @@
 <script setup lang="ts">
 import { api, type RollbackPlan } from '../api'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 
-const photoDir = ref('')
+const props = defineProps<{ rootPath: string }>()
+
+const photoDir = ref(props.rootPath)
 const plan = ref<RollbackPlan | null>(null)
 const loading = ref(false)
 const executing = ref(false)
 const error = ref('')
+
+watch(
+  () => props.rootPath,
+  (val) => {
+    photoDir.value = val
+  },
+)
 
 async function dryRun() {
   if (!photoDir.value.trim()) return

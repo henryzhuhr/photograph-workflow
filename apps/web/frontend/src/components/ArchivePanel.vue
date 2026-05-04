@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { api, type ArchivePlan, type ArchiveNamePlan } from '../api'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 
-const sourceDir = ref('')
+const props = defineProps<{ rootPath: string }>()
+
+const sourceDir = ref(props.rootPath)
 const outputDir = ref('')
 const overwrite = ref(false)
 
@@ -12,6 +14,13 @@ const loading = ref(false)
 const loadingName = ref(false)
 const executing = ref(false)
 const error = ref('')
+
+watch(
+  () => props.rootPath,
+  (val) => {
+    sourceDir.value = val
+  },
+)
 
 async function generateName() {
   if (!sourceDir.value.trim()) return

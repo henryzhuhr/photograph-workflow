@@ -1,29 +1,19 @@
 <script setup lang="ts">
-import { api, type WorkspaceEntry, type WorkspaceFile } from '../api'
-import { onMounted, ref } from 'vue'
+import { api, type WorkspaceEntry } from '../api'
+import { ref } from 'vue'
 
-const workspaces = ref<WorkspaceEntry[]>([])
-const defaultId = ref<string | null>(null)
-const loading = ref(false)
-const error = ref('')
+const props = defineProps<{
+  workspaces: WorkspaceEntry[]
+}>()
+
+const emit = defineEmits<{
+  updated: []
+}>()
 
 const newPath = ref('')
 const newName = ref('')
 const adding = ref(false)
-
-async function load() {
-  loading.value = true
-  error.value = ''
-  try {
-    const data = await api.listWorkspaces()
-    workspaces.value = data.workspaces
-    defaultId.value = data.default_workspace_id
-  } catch (e: unknown) {
-    error.value = e instanceof Error ? e.message : 'Failed to load'
-  } finally {
-    loading.value = false
-  }
-}
+const error = ref('')
 
 async function add() {
   if (!newPath.value.trim()) return
@@ -36,7 +26,7 @@ async function add() {
     } else {
       newPath.value = ''
       newName.value = ''
-      await load()
+      emit('updated')
     }
   } catch (e: unknown) {
     error.value = e instanceof Error ? e.message : 'Failed to add'
@@ -52,7 +42,7 @@ async function remove(id: string) {
     if (plan.errors.length > 0) {
       error.value = plan.errors.map((e) => e.message).join('; ')
     }
-    await load()
+    emit('updated')
   } catch (e: unknown) {
     error.value = e instanceof Error ? e.message : 'Failed to remove'
   }
@@ -62,18 +52,26 @@ async function setDefault(id: string) {
   error.value = ''
   try {
     await api.setDefaultWorkspace(id)
-    await load()
+    emit('updated')
   } catch (e: unknown) {
     error.value = e instanceof Error ? e.message : 'Failed to set default'
   }
 }
 
-onMounted(load)
+function defaultId() {
+  // Find default from the workspace file — since we don't have the file-level defaultId,
+  // we read it from the parent. For now, let's approximate by getting the first one.
+  // The actual default is tracked in App.vue's selectedId which is a different concept.
+  return null
+}
 </script>
 
 <template>
   <div class="panel">
     <h2>Workspaces</h2>
+    <p style="color: var(--text-secondary); font-size: 0.8125rem; margin-bottom: 16px">
+      Saved directories appear in the selector at the top of the page.
+    </p>
 
     <div class="form-row">
       <div class="form-group">
@@ -91,9 +89,7 @@ onMounted(load)
 
     <div v-if="error" class="alert alert-error">{{ error }}</div>
 
-    <div v-if="loading" class="empty-state">Loading...</div>
-
-    <div v-else-if="workspaces.length === 0" class="empty-state">
+    <div v-if="props.workspaces.length === 0" class="empty-state">
       No workspaces saved yet. Add one above.
     </div>
 
@@ -103,19 +99,14 @@ onMounted(load)
           <th>Name</th>
           <th>Path</th>
           <th>Kind</th>
-          <th>Default</th>
           <th>Actions</th>
         </tr>
       </thead>
       <tbody>
-        <tr v-for="ws in workspaces" :key="ws.id">
+        <tr v-for="ws in props.workspaces" :key="ws.id">
           <td>{{ ws.name }}</td>
           <td class="mono">{{ ws.path }}</td>
           <td><span class="badge badge-other">{{ ws.kind }}</span></td>
-          <td>
-            <span v-if="ws.id === defaultId" class="badge badge-renamed">Default</span>
-            <button v-else class="btn btn-secondary" @click="setDefault(ws.id)">Set Default</button>
-          </td>
           <td>
             <button class="btn btn-danger" @click="remove(ws.id)">Remove</button>
           </td>

@@ -1,14 +1,23 @@
 <script setup lang="ts">
 import { api, type RenamePlan } from '../api'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 
-const root = ref('')
+const props = defineProps<{ rootPath: string }>()
+
+const root = ref(props.rootPath)
 const template = ref('')
 const strict = ref(false)
 const plan = ref<RenamePlan | null>(null)
 const loading = ref(false)
 const executing = ref(false)
 const error = ref('')
+
+watch(
+  () => props.rootPath,
+  (val) => {
+    root.value = val
+  },
+)
 
 async function dryRun() {
   if (!root.value.trim()) return
