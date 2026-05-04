@@ -51,6 +51,14 @@ uv run uvicorn apps.web.backend.server:app --port 8000
 
 打开 `http://localhost:8000`，后端直接提供前端静态文件。
 
+**Docker Compose**（推荐生产部署）：
+
+```bash
+docker compose up --build
+```
+
+打开 `http://localhost:8000`。镜像包含前端构建产物和后端服务，不依赖本地 Node.js 或 Python 环境。
+
 ### 功能页面
 
 | 页面 | 功能 |

@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.git/
+apps/web/frontend/node_modules/
+apps/web/frontend/dist/
+tmp/
+*.pyc
+.DS_Store
