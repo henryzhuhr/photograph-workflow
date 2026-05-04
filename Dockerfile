@@ -16,6 +16,7 @@ COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-dev
 
 COPY src/ ./src/
+COPY apps/ ./apps/
 COPY --from=frontend-build /frontend/dist ./apps/web/frontend/dist
 
 EXPOSE 8000
