@@ -12,6 +12,7 @@ Photograph Workflow 是一个本地照片文件管理脚本项目，用于在 Li
 - 根据 `.metadata.json` 回滚重命名。
 - 生成推荐压缩包名称，或把用户指定目录整体打成 ZIP。
 - 保存常用 workspace。
+- 本地 Web UI（FastAPI + Vue 3），可视化操作所有功能。
 
 ## 安装
 
@@ -22,6 +23,48 @@ uv sync
 ```
 
 元数据读取优先使用系统或项目环境中的 `exiftool`。如果当前环境没有 `exiftool`，脚本会自动 fallback 到 Python 依赖 `exifread`，用于读取当前命名所需的基础 EXIF 字段。
+
+## Web UI
+
+本地 Web 界面提供可视化操作，复用同一套 Python application 层。
+
+### 启动
+
+**开发模式**（两个终端）：
+
+```bash
+# 终端 1：启动 API 服务
+uv run uvicorn apps.web.backend.server:app --reload --port 8000
+
+# 终端 2：启动前端开发服务器
+cd apps/web/frontend && npm run dev
+```
+
+打开 `http://localhost:5173`，前端开发服务器会自动把 `/api` 请求代理到后端 `8000` 端口。
+
+**生产模式**（单进程）：
+
+```bash
+cd apps/web/frontend && npm install && npm run build
+uv run uvicorn apps.web.backend.server:app --port 8000
+```
+
+打开 `http://localhost:8000`，后端直接提供前端静态文件。
+
+### 功能页面
+
+| 页面 | 功能 |
+| --- | --- |
+| Workspace | 增删常用照片目录，设置默认 workspace |
+| Scan | 输入目录路径，查看 RAW/DNG/sidecar/other 文件统计 |
+| Rename | Dry-run 预览重命名计划，展示 before/after 和 sidecar 映射，确认后执行 |
+| Rollback | 选择照片目录，预览回滚计划，确认后恢复到原始文件名 |
+| Archive | 预览 ZIP 归档计划（文件列表、大小统计、排除项），确认后执行；也可只生成推荐压缩包名 |
+
+### 技术栈
+
+- 后端：FastAPI，直接调用 `photograph_workflow.application` 用例，返回结构化 JSON
+- 前端：Vue 3 + TypeScript + Vite，零构建配置，Tab 导航
 
 ## 推荐工作流
 
@@ -291,4 +334,5 @@ Workspace 文件位置：
 - 当前不读取或修改 Lightroom catalog。
 - 当前不管理 Lightroom 导出成片。
 - 当前不写入 RAW/DNG 元数据。
+- Web UI 为本地服务，未添加认证，请勿暴露到公网。
 - 当前 CLI 主要输出结构化 JSON，后续可以继续优化人类可读摘要。
