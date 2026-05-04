@@ -3,6 +3,20 @@ name = "photograph-workflow"
 version = "0.1.0"
 description = "A workflow tool for managing camera RAW files — rename, categorize, and archive"
 readme = "README.md"
-requires-python = ">=3.14"
+requires-python = ">=3.12"
 license = "GPL-3.0"
-dependencies = []
+dependencies = [
+  "exifread>=3.0",
+  "pydantic>=2.7",
+  "pytest>=8.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
