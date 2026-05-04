@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { api, type RollbackPlan } from '../api'
 import { ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const props = defineProps<{ rootPath: string }>()
 
 const photoDir = ref(props.rootPath)
@@ -23,8 +25,8 @@ async function dryRun() {
   error.value = ''
   try {
     plan.value = await api.rollbackPlan(photoDir.value.trim())
-  } catch (e: unknown) {
-    error.value = e instanceof Error ? e.message : 'Failed to generate plan'
+  } catch {
+    error.value = t('common.errorGeneratePlan')
   } finally {
     loading.value = false
   }
@@ -35,15 +37,15 @@ async function execute() {
   error.value = ''
   try {
     plan.value = await api.rollbackExecute(photoDir.value.trim())
-  } catch (e: unknown) {
-    error.value = e instanceof Error ? e.message : 'Failed to execute'
+  } catch {
+    error.value = t('common.errorExecute')
   } finally {
     executing.value = false
   }
 }
 
 function confirmAndExecute() {
-  if (window.confirm('Execute rollback? This will restore original file names.')) {
+  if (window.confirm(t('rollback.confirm'))) {
     execute()
   }
 }
@@ -51,18 +53,18 @@ function confirmAndExecute() {
 
 <template>
   <div class="panel">
-    <h2>Rollback</h2>
+    <h2>{{ t('rollback.title') }}</h2>
     <p style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 16px">
-      Restore original file names using .metadata.json records.
+      {{ t('rollback.description') }}
     </p>
 
     <div class="form-row">
       <div class="form-group">
-        <label>Photo Directory Path</label>
+        <label>{{ t('rollback.pathLabel') }}</label>
         <input
           v-model="photoDir"
           type="text"
-          placeholder="/path/to/photo-directory"
+          :placeholder="t('rollback.pathPlaceholder')"
           @keyup.enter="dryRun()"
         />
       </div>
@@ -70,7 +72,7 @@ function confirmAndExecute() {
 
     <div class="form-row">
       <button class="btn btn-primary" :disabled="loading || !photoDir.trim()" @click="dryRun()">
-        {{ loading ? 'Generating...' : 'Dry Run' }}
+        {{ loading ? t('rollback.generating') : t('rollback.dryRun') }}
       </button>
       <button
         v-if="plan && plan.errors.length === 0 && plan.items.length > 0"
@@ -78,7 +80,7 @@ function confirmAndExecute() {
         :disabled="executing"
         @click="confirmAndExecute()"
       >
-        {{ executing ? 'Executing...' : 'Execute Rollback' }}
+        {{ executing ? t('rollback.executing') : t('rollback.execute') }}
       </button>
     </div>
 
@@ -99,15 +101,15 @@ function confirmAndExecute() {
         </div>
       </div>
 
-      <div v-if="plan.items.length === 0" class="empty-state">No files to rollback.</div>
+      <div v-if="plan.items.length === 0" class="empty-state">{{ t('rollback.empty') }}</div>
 
       <table v-else>
         <thead>
           <tr>
-            <th>Current</th>
-            <th>Restore To</th>
-            <th>Role</th>
-            <th>Status</th>
+            <th>{{ t('rollback.currentHeader') }}</th>
+            <th>{{ t('rollback.restoreHeader') }}</th>
+            <th>{{ t('rollback.roleHeader') }}</th>
+            <th>{{ t('rollback.statusHeader') }}</th>
           </tr>
         </thead>
         <tbody>

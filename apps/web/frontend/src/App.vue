@@ -1,18 +1,22 @@
 <script setup lang="ts">
 import { api, type WorkspaceEntry } from './api'
 import { computed, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { setLocale } from './i18n'
 import WorkspacePanel from './components/WorkspacePanel.vue'
 import ScanPanel from './components/ScanPanel.vue'
 import RenamePanel from './components/RenamePanel.vue'
 import RollbackPanel from './components/RollbackPanel.vue'
 import ArchivePanel from './components/ArchivePanel.vue'
 
+const { t, locale } = useI18n()
+
 const tabs = [
-  { id: 'scan', label: 'Scan' },
-  { id: 'rename', label: 'Rename' },
-  { id: 'rollback', label: 'Rollback' },
-  { id: 'archive', label: 'Archive' },
-  { id: 'workspace', label: 'Workspaces' },
+  { id: 'scan', key: 'tabs.scan' },
+  { id: 'rename', key: 'tabs.rename' },
+  { id: 'rollback', key: 'tabs.rollback' },
+  { id: 'archive', key: 'tabs.archive' },
+  { id: 'workspace', key: 'tabs.workspaces' },
 ] as const
 
 const activeTab = ref<string>('scan')
@@ -45,8 +49,8 @@ async function loadWorkspaces() {
   }
 }
 
-function onWorkspaceChanged() {
-  // refresh workspace-related panels
+function toggleLocale() {
+  setLocale(locale.value === 'zh' ? 'en' : 'zh')
 }
 
 onMounted(loadWorkspaces)
@@ -55,29 +59,32 @@ onMounted(loadWorkspaces)
 <template>
   <div class="app">
     <header class="app-header">
-      <h1>Photograph Workflow</h1>
+      <h1>{{ t('app.title') }}</h1>
+      <button class="lang-btn" @click="toggleLocale">
+        {{ locale === 'zh' ? 'EN' : '中文' }}
+      </button>
     </header>
 
     <!-- Workspace selector -->
     <div class="ws-bar">
-      <label class="ws-label">Directory:</label>
-      <select v-model="selectedId" class="ws-select" @change="onWorkspaceChanged">
-        <option value="" disabled>Select a workspace...</option>
+      <label class="ws-label">{{ t('app.directory') }}:</label>
+      <select v-model="selectedId" class="ws-select">
+        <option value="" disabled>{{ t('app.selectWorkspace') }}</option>
         <option v-for="ws in workspaces" :key="ws.id" :value="ws.id">
           {{ ws.name }} — {{ ws.path }}
         </option>
-        <option value="">— Custom path —</option>
+        <option value="">{{ t('app.customPath') }}</option>
       </select>
       <input
         v-if="!selectedId"
         v-model="customPath"
         type="text"
-        placeholder="Paste or type a directory path..."
+        :placeholder="t('app.customPathPlaceholder')"
         class="ws-custom-input"
       />
-      <span v-if="!workspaceLoaded" class="ws-hint">Loading...</span>
+      <span v-if="!workspaceLoaded" class="ws-hint">{{ t('app.loading') }}</span>
       <span v-else-if="workspaces.length === 0 && !customPath" class="ws-hint">
-        Add a workspace below or enter a path.
+        {{ t('app.noWorkspaceHint') }}
       </span>
       <span v-else-if="rootPath" class="ws-hint mono">{{ rootPath }}</span>
     </div>
@@ -90,7 +97,7 @@ onMounted(loadWorkspaces)
         :class="['tab', { active: activeTab === tab.id }]"
         @click="activeTab = tab.id"
       >
-        {{ tab.label }}
+        {{ t(tab.key) }}
       </button>
     </nav>
 
@@ -151,6 +158,9 @@ body {
 }
 
 .app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: 24px 0 12px;
 }
 
@@ -158,6 +168,23 @@ body {
   font-size: 1.5rem;
   font-weight: 600;
   color: var(--text);
+}
+
+.lang-btn {
+  padding: 4px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.lang-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
 }
 
 /* ---- Workspace bar ---- */

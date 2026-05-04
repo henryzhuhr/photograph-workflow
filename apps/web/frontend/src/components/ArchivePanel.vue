@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { api, type ArchivePlan, type ArchiveNamePlan } from '../api'
 import { ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const props = defineProps<{ rootPath: string }>()
 
 const sourceDir = ref(props.rootPath)
@@ -31,8 +33,8 @@ async function generateName() {
       sourceDir.value.trim(),
       outputDir.value.trim() || undefined,
     )
-  } catch (e: unknown) {
-    error.value = e instanceof Error ? e.message : 'Failed'
+  } catch {
+    error.value = t('common.errorFailed')
   } finally {
     loadingName.value = false
   }
@@ -48,8 +50,8 @@ async function dryRun() {
       outputDir.value.trim(),
       overwrite.value,
     )
-  } catch (e: unknown) {
-    error.value = e instanceof Error ? e.message : 'Failed to generate plan'
+  } catch {
+    error.value = t('common.errorGeneratePlan')
   } finally {
     loading.value = false
   }
@@ -64,15 +66,15 @@ async function execute() {
       outputDir.value.trim(),
       overwrite.value,
     )
-  } catch (e: unknown) {
-    error.value = e instanceof Error ? e.message : 'Failed to execute'
+  } catch {
+    error.value = t('common.errorExecute')
   } finally {
     executing.value = false
   }
 }
 
 function confirmAndExecute() {
-  if (window.confirm('Execute archive? This will create a ZIP file.')) {
+  if (window.confirm(t('archive.confirm'))) {
     execute()
   }
 }
@@ -87,21 +89,21 @@ function formatBytes(bytes: number): string {
 
 <template>
   <div class="panel">
-    <h2>Archive</h2>
+    <h2>{{ t('archive.title') }}</h2>
 
     <div class="form-row">
       <div class="form-group">
-        <label>Source Directory</label>
-        <input v-model="sourceDir" type="text" placeholder="/path/to/source" />
+        <label>{{ t('archive.sourceLabel') }}</label>
+        <input v-model="sourceDir" type="text" :placeholder="t('archive.sourcePlaceholder')" />
       </div>
       <div class="form-group">
-        <label>Output Directory</label>
-        <input v-model="outputDir" type="text" placeholder="/path/to/output" />
+        <label>{{ t('archive.outputLabel') }}</label>
+        <input v-model="outputDir" type="text" :placeholder="t('archive.outputPlaceholder')" />
       </div>
       <div class="form-group">
         <label style="display: flex; align-items: center; gap: 6px">
           <input v-model="overwrite" type="checkbox" />
-          Overwrite existing
+          {{ t('archive.overwriteLabel') }}
         </label>
       </div>
     </div>
@@ -112,14 +114,14 @@ function formatBytes(bytes: number): string {
         :disabled="loadingName || !sourceDir.trim()"
         @click="generateName()"
       >
-        {{ loadingName ? 'Generating...' : 'Preview Archive Name' }}
+        {{ loadingName ? t('archive.generating') : t('archive.previewName') }}
       </button>
       <button
         class="btn btn-primary"
         :disabled="loading || !sourceDir.trim() || !outputDir.trim()"
         @click="dryRun()"
       >
-        {{ loading ? 'Generating...' : 'Dry Run' }}
+        {{ loading ? t('archive.generating') : t('archive.dryRun') }}
       </button>
       <button
         v-if="archivePlan && archivePlan.errors.length === 0 && archivePlan.items.length > 0"
@@ -127,7 +129,7 @@ function formatBytes(bytes: number): string {
         :disabled="executing"
         @click="confirmAndExecute()"
       >
-        {{ executing ? 'Archiving...' : 'Execute Archive' }}
+        {{ executing ? t('archive.executing') : t('archive.execute') }}
       </button>
     </div>
 
@@ -135,7 +137,7 @@ function formatBytes(bytes: number): string {
 
     <!-- Archive Name Preview -->
     <div v-if="namePlan" class="result-section">
-      <h3 style="font-size: 0.9375rem; margin-bottom: 8px">Recommended Archive Name</h3>
+      <h3 style="font-size: 0.9375rem; margin-bottom: 8px">{{ t('archive.nameHeader') }}</h3>
       <div class="alert alert-warning" v-for="w in namePlan.warnings" :key="w.code">
         <strong>{{ w.code }}</strong>: {{ w.message }}
       </div>
@@ -152,7 +154,7 @@ function formatBytes(bytes: number): string {
           <tr>
             <td class="mono">{{ namePlan.source_dir }}</td>
             <td class="mono">{{ namePlan.archive_name }}</td>
-            <td class="mono">{{ namePlan.archive_path || '(no output dir)' }}</td>
+            <td class="mono">{{ namePlan.archive_path || t('archive.noOutputDir') }}</td>
             <td class="mono">{{ namePlan.archived_at }}</td>
           </tr>
         </tbody>
@@ -161,33 +163,35 @@ function formatBytes(bytes: number): string {
 
     <!-- Archive Plan -->
     <div v-if="archivePlan" class="result-section">
-      <h3 style="font-size: 0.9375rem; margin-bottom: 8px; margin-top: 20px">Archive Plan</h3>
+      <h3 style="font-size: 0.9375rem; margin-bottom: 8px; margin-top: 20px">
+        {{ t('archive.planHeader') }}
+      </h3>
 
       <div class="summary">
         <div class="summary-item">
           <span class="summary-value">{{ archivePlan.included_count }}</span>
-          <span class="summary-label">Included</span>
+          <span class="summary-label">{{ t('archive.included') }}</span>
         </div>
         <div class="summary-item">
           <span class="summary-value">{{ archivePlan.excluded_count }}</span>
-          <span class="summary-label">Excluded</span>
+          <span class="summary-label">{{ t('archive.excluded') }}</span>
         </div>
         <div class="summary-item">
           <span class="summary-value">{{ formatBytes(archivePlan.total_size_bytes) }}</span>
-          <span class="summary-label">Total Size</span>
+          <span class="summary-label">{{ t('archive.totalSize') }}</span>
         </div>
         <div class="summary-item">
           <span class="summary-value">{{ archivePlan.raw_count }}</span>
-          <span class="summary-label">RAW/DNG</span>
+          <span class="summary-label">{{ t('archive.rawDng') }}</span>
         </div>
         <div class="summary-item">
           <span class="summary-value">{{ archivePlan.sidecar_count }}</span>
-          <span class="summary-label">Sidecars</span>
+          <span class="summary-label">{{ t('archive.sidecars') }}</span>
         </div>
       </div>
 
       <div class="mono" style="margin-bottom: 16px; font-size: 0.875rem">
-        Archive: <strong>{{ archivePlan.archive_path }}</strong>
+        {{ t('archive.archivePath') }}: <strong>{{ archivePlan.archive_path }}</strong>
       </div>
 
       <div v-if="archivePlan.warnings.length > 0">
@@ -205,10 +209,10 @@ function formatBytes(bytes: number): string {
       <table v-if="archivePlan.items.length > 0">
         <thead>
           <tr>
-            <th>Source</th>
-            <th>Size</th>
-            <th>Included</th>
-            <th>Exclude Reason</th>
+            <th>{{ t('archive.sourceHeader') }}</th>
+            <th>{{ t('archive.sizeHeader') }}</th>
+            <th>{{ t('archive.includedHeader') }}</th>
+            <th>{{ t('archive.excludeReasonHeader') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -217,7 +221,7 @@ function formatBytes(bytes: number): string {
             <td class="mono">{{ item.size_bytes ? formatBytes(item.size_bytes) : '-' }}</td>
             <td>
               <span :class="['badge', item.included ? 'badge-renamed' : 'badge-other']">
-                {{ item.included ? 'Yes' : 'No' }}
+                {{ item.included ? t('archive.yes') : t('archive.no') }}
               </span>
             </td>
             <td>{{ item.exclude_reason || '-' }}</td>

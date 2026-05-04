@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { api, type CommonPlan, type ScanItem } from '../api'
 import { ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const props = defineProps<{ rootPath: string }>()
 
 const root = ref(props.rootPath)
@@ -22,8 +24,8 @@ async function doScan() {
   error.value = ''
   try {
     result.value = await api.scan(root.value.trim())
-  } catch (e: unknown) {
-    error.value = e instanceof Error ? e.message : 'Failed to scan'
+  } catch {
+    error.value = t('common.errorScan')
   } finally {
     loading.value = false
   }
@@ -42,15 +44,20 @@ function otherCount(items: ScanItem[]) {
 
 <template>
   <div class="panel">
-    <h2>Scan Directory</h2>
+    <h2>{{ t('scan.title') }}</h2>
 
     <div class="form-row">
       <div class="form-group">
-        <label>Directory Path</label>
-        <input v-model="root" type="text" placeholder="/path/to/photos" @keyup.enter="doScan()" />
+        <label>{{ t('scan.pathLabel') }}</label>
+        <input
+          v-model="root"
+          type="text"
+          :placeholder="t('scan.pathPlaceholder')"
+          @keyup.enter="doScan()"
+        />
       </div>
       <button class="btn btn-primary" :disabled="loading || !root.trim()" @click="doScan()">
-        {{ loading ? 'Scanning...' : 'Scan' }}
+        {{ loading ? t('scan.scanning') : t('scan.scan') }}
       </button>
     </div>
 
@@ -60,19 +67,19 @@ function otherCount(items: ScanItem[]) {
       <div class="summary">
         <div class="summary-item">
           <span class="summary-value">{{ result.items.length }}</span>
-          <span class="summary-label">Total Files</span>
+          <span class="summary-label">{{ t('scan.totalFiles') }}</span>
         </div>
         <div class="summary-item">
           <span class="summary-value">{{ rawCount(result.items as ScanItem[]) }}</span>
-          <span class="summary-label">RAW/DNG</span>
+          <span class="summary-label">{{ t('scan.rawDng') }}</span>
         </div>
         <div class="summary-item">
           <span class="summary-value">{{ sidecarCount(result.items as ScanItem[]) }}</span>
-          <span class="summary-label">Sidecars</span>
+          <span class="summary-label">{{ t('scan.sidecars') }}</span>
         </div>
         <div class="summary-item">
           <span class="summary-value">{{ otherCount(result.items as ScanItem[]) }}</span>
-          <span class="summary-label">Other</span>
+          <span class="summary-label">{{ t('scan.other') }}</span>
         </div>
       </div>
 

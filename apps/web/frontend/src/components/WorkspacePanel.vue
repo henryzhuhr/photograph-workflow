@@ -1,14 +1,13 @@
 <script setup lang="ts">
 import { api, type WorkspaceEntry } from '../api'
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 
-const props = defineProps<{
-  workspaces: WorkspaceEntry[]
-}>()
+const { t } = useI18n()
 
-const emit = defineEmits<{
-  updated: []
-}>()
+defineProps<{ workspaces: WorkspaceEntry[] }>()
+
+const emit = defineEmits<{ updated: [] }>()
 
 const newPath = ref('')
 const newName = ref('')
@@ -28,8 +27,8 @@ async function add() {
       newName.value = ''
       emit('updated')
     }
-  } catch (e: unknown) {
-    error.value = e instanceof Error ? e.message : 'Failed to add'
+  } catch {
+    error.value = t('common.errorAdd')
   } finally {
     adding.value = false
   }
@@ -43,72 +42,67 @@ async function remove(id: string) {
       error.value = plan.errors.map((e) => e.message).join('; ')
     }
     emit('updated')
-  } catch (e: unknown) {
-    error.value = e instanceof Error ? e.message : 'Failed to remove'
+  } catch {
+    error.value = t('common.errorRemove')
   }
-}
-
-async function setDefault(id: string) {
-  error.value = ''
-  try {
-    await api.setDefaultWorkspace(id)
-    emit('updated')
-  } catch (e: unknown) {
-    error.value = e instanceof Error ? e.message : 'Failed to set default'
-  }
-}
-
-function defaultId() {
-  // Find default from the workspace file — since we don't have the file-level defaultId,
-  // we read it from the parent. For now, let's approximate by getting the first one.
-  // The actual default is tracked in App.vue's selectedId which is a different concept.
-  return null
 }
 </script>
 
 <template>
   <div class="panel">
-    <h2>Workspaces</h2>
+    <h2>{{ t('workspace.title') }}</h2>
     <p style="color: var(--text-secondary); font-size: 0.8125rem; margin-bottom: 16px">
-      Saved directories appear in the selector at the top of the page.
+      {{ t('workspace.hint') }}
     </p>
 
     <div class="form-row">
       <div class="form-group">
-        <label>Directory Path</label>
-        <input v-model="newPath" type="text" placeholder="/path/to/photos" @keyup.enter="add()" />
+        <label>{{ t('workspace.pathLabel') }}</label>
+        <input
+          v-model="newPath"
+          type="text"
+          :placeholder="t('workspace.pathPlaceholder')"
+          @keyup.enter="add()"
+        />
       </div>
       <div class="form-group">
-        <label>Name (optional)</label>
-        <input v-model="newName" type="text" placeholder="My Photos" @keyup.enter="add()" />
+        <label>{{ t('workspace.nameLabel') }}</label>
+        <input
+          v-model="newName"
+          type="text"
+          :placeholder="t('workspace.namePlaceholder')"
+          @keyup.enter="add()"
+        />
       </div>
       <button class="btn btn-primary" :disabled="adding || !newPath.trim()" @click="add()">
-        {{ adding ? 'Adding...' : 'Add Workspace' }}
+        {{ adding ? t('workspace.adding') : t('workspace.add') }}
       </button>
     </div>
 
     <div v-if="error" class="alert alert-error">{{ error }}</div>
 
-    <div v-if="props.workspaces.length === 0" class="empty-state">
-      No workspaces saved yet. Add one above.
+    <div v-if="$props.workspaces.length === 0" class="empty-state">
+      {{ t('workspace.empty') }}
     </div>
 
     <table v-else>
       <thead>
         <tr>
-          <th>Name</th>
-          <th>Path</th>
-          <th>Kind</th>
-          <th>Actions</th>
+          <th>{{ t('workspace.nameHeader') }}</th>
+          <th>{{ t('workspace.pathHeader') }}</th>
+          <th>{{ t('workspace.kindHeader') }}</th>
+          <th>{{ t('workspace.actionsHeader') }}</th>
         </tr>
       </thead>
       <tbody>
-        <tr v-for="ws in props.workspaces" :key="ws.id">
+        <tr v-for="ws in $props.workspaces" :key="ws.id">
           <td>{{ ws.name }}</td>
           <td class="mono">{{ ws.path }}</td>
           <td><span class="badge badge-other">{{ ws.kind }}</span></td>
           <td>
-            <button class="btn btn-danger" @click="remove(ws.id)">Remove</button>
+            <button class="btn btn-danger" @click="remove(ws.id)">
+              {{ t('workspace.remove') }}
+            </button>
           </td>
         </tr>
       </tbody>
