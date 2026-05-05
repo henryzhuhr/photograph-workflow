@@ -9,6 +9,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': SHARED_SRC,
+      '@tauri-apps/api/core': resolve(__dirname, 'node_modules/@tauri-apps/api/core.js'),
     },
   },
   server: {

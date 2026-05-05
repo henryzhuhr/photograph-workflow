@@ -4,7 +4,8 @@
       "Bash(uvx ruff *)",
       "Bash(brew list *)",
       "Bash(npx tauri *)",
-      "Bash(cargo clean *)"
+      "Bash(cargo clean *)",
+      "Bash(cargo build *)"
     ]
   }
 }

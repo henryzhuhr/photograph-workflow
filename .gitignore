@@ -8,6 +8,8 @@ tmps/
 temp/
 temps/
 
+.claude/settings.local.json
+
 # Vitepress
 .vitepress/dist
 .vitepress/cache
