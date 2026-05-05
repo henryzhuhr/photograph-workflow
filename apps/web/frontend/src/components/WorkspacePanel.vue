@@ -2,6 +2,7 @@
 import { api, type WorkspaceEntry } from '../api'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { isTauri, native } from '../platform'
 
 const { t } = useI18n()
 
@@ -14,18 +15,30 @@ const newName = ref('')
 const adding = ref(false)
 const error = ref('')
 
+async function pickDirectory() {
+  const path = await native.chooseDirectory()
+  if (path) newPath.value = path
+}
+
 async function add() {
   if (!newPath.value.trim()) return
   adding.value = true
   error.value = ''
   try {
-    const plan = await api.addWorkspace(newPath.value.trim(), newName.value.trim() || undefined)
-    if (plan.errors.length > 0) {
-      error.value = plan.errors.map((e) => e.message).join('; ')
-    } else {
+    if (isTauri()) {
+      await native.saveRecentWorkspace(newPath.value.trim(), newName.value.trim() || undefined)
       newPath.value = ''
       newName.value = ''
       emit('updated')
+    } else {
+      const plan = await api.addWorkspace(newPath.value.trim(), newName.value.trim() || undefined)
+      if (plan.errors.length > 0) {
+        error.value = plan.errors.map((e) => e.message).join('; ')
+      } else {
+        newPath.value = ''
+        newName.value = ''
+        emit('updated')
+      }
     }
   } catch {
     error.value = t('common.errorAdd')
@@ -37,9 +50,13 @@ async function add() {
 async function remove(id: string) {
   error.value = ''
   try {
-    const plan = await api.removeWorkspace(id)
-    if (plan.errors.length > 0) {
-      error.value = plan.errors.map((e) => e.message).join('; ')
+    if (isTauri()) {
+      await native.forgetWorkspace(id)
+    } else {
+      const plan = await api.removeWorkspace(id)
+      if (plan.errors.length > 0) {
+        error.value = plan.errors.map((e) => e.message).join('; ')
+      }
     }
     emit('updated')
   } catch {
@@ -59,12 +76,22 @@ async function remove(id: string) {
     <div class="form-row">
       <div class="form-group">
         <label>{{ t('workspace.pathLabel') }}</label>
-        <input
-          v-model="newPath"
-          type="text"
-          :placeholder="t('workspace.pathPlaceholder')"
-          @keyup.enter="add()"
-        />
+        <div class="path-input-row">
+          <input
+            v-model="newPath"
+            type="text"
+            :placeholder="t('workspace.pathPlaceholder')"
+            @keyup.enter="add()"
+          />
+          <button
+            v-if="isTauri()"
+            class="btn btn-secondary"
+            type="button"
+            @click="pickDirectory()"
+          >
+            {{ t('app.chooseFolder') }}
+          </button>
+        </div>
       </div>
       <div class="form-group">
         <label>{{ t('workspace.nameLabel') }}</label>
@@ -126,5 +153,14 @@ async function remove(id: string) {
 .stage-note span {
   color: var(--text-secondary);
   font-size: 0.875rem;
+}
+
+.path-input-row {
+  display: flex;
+  gap: 8px;
+}
+
+.path-input-row input {
+  flex: 1;
 }
 </style>

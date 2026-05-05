@@ -20,6 +20,8 @@ export default {
     localDirectoryPathLabel: '完整目录路径',
     localDirectoryExampleLabel: '示例',
     applyLocalDirectory: '使用此目录',
+    chooseFolder: '选择文件夹...',
+    revealInFinder: '在 Finder 中显示',
     loading: '加载中...',
     noWorkspaceHint: '在下方添加工作目录，或直接输入路径。',
   },

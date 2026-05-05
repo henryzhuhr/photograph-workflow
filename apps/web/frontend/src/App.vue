@@ -3,6 +3,7 @@ import { api, type WorkspaceEntry } from './api'
 import { computed, nextTick, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { setLocale } from './i18n'
+import { isTauri, native } from './platform'
 import WorkspacePanel from './components/WorkspacePanel.vue'
 import ScanPanel from './components/ScanPanel.vue'
 import RenamePanel from './components/RenamePanel.vue'
@@ -48,12 +49,20 @@ const activeStep = computed(() => workflowSteps.find((step) => step.id === activ
 
 async function loadWorkspaces() {
   try {
-    const data = await api.listWorkspaces()
-    workspaces.value = data.workspaces
-    if (data.default_workspace_id && workspaces.value.some((w) => w.id === data.default_workspace_id)) {
-      selectedId.value = data.default_workspace_id
-    } else if (workspaces.value.length > 0) {
-      selectedId.value = workspaces.value[0].id
+    if (isTauri()) {
+      const ws = await native.getRecentWorkspaces()
+      workspaces.value = ws
+      if (ws.length > 0) {
+        selectedId.value = ws[0].id
+      }
+    } else {
+      const data = await api.listWorkspaces()
+      workspaces.value = data.workspaces
+      if (data.default_workspace_id && workspaces.value.some((w) => w.id === data.default_workspace_id)) {
+        selectedId.value = data.default_workspace_id
+      } else if (workspaces.value.length > 0) {
+        selectedId.value = workspaces.value[0].id
+      }
     }
   } catch {
     // workspaces unavailable — user can still type a path
@@ -70,6 +79,17 @@ function changeLocale(event: Event) {
 }
 
 async function chooseLocalDirectory() {
+  if (isTauri()) {
+    const path = await native.chooseDirectory()
+    if (path) {
+      customPath.value = path
+      customPathMode.value = true
+      selectedId.value = ''
+      await native.saveRecentWorkspace(path)
+      await loadWorkspaces()
+    }
+    return
+  }
   pendingLocalPath.value = customPath.value
   showLocalPathDialog.value = true
   await nextTick()
@@ -133,7 +153,15 @@ onMounted(loadWorkspaces)
           <option value="">{{ t('app.customPath') }}</option>
         </select>
         <button class="btn btn-secondary" type="button" @click="chooseLocalDirectory">
-          {{ t('app.chooseLocalDirectory') }}
+          {{ isTauri() ? t('app.chooseFolder') : t('app.chooseLocalDirectory') }}
+        </button>
+        <button
+          v-if="isTauri() && rootPath"
+          class="btn btn-secondary"
+          type="button"
+          @click="native.revealInFinder(rootPath)"
+        >
+          {{ t('app.revealInFinder') }}
         </button>
         <span v-if="customPathMode && customPath" class="custom-path-pill">
           {{ t('app.customPathActive') }}

@@ -74,6 +74,63 @@ docker compose up --build
 - 后端：FastAPI，直接调用 `photograph_workflow.application` 用例，返回结构化 JSON
 - 前端：Vue 3 + TypeScript + Vite，零构建配置，Tab 导航
 
+## Desktop App（开发中）
+
+Tauri 桌面包装 App，将 Web UI 包装为原生 macOS 窗口，提供系统目录选择器、Finder 集成和本地最近目录记录。
+
+### 前置条件
+
+**Rust 工具链**（Tauri 后端编译所需）：
+
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
+
+安装位置：
+
+| 目录 | 说明 |
+|------|------|
+| `~/.rustup/` | rustup 自身和下载的工具链，约 1-2 GB |
+| `~/.cargo/bin/` | rustc、cargo、rustup 等可执行文件 |
+| `~/.cargo/env` | 环境变量，安装脚本会自动写入 `~/.zshrc` |
+
+重启 shell 后验证：
+
+```bash
+rustc --version
+cargo --version
+```
+
+### 开发启动
+
+```bash
+cd apps/desktop
+npm install
+npm run tauri dev
+```
+
+Tauri 会自动：
+1. 启动 Vite 前端开发服务器（端口 5173）
+2. 启动 Python 后端（端口 8000）
+3. 打开原生 macOS 窗口加载前端
+
+### 生产构建
+
+```bash
+cd apps/desktop
+npm run tauri build
+```
+
+构建产物在 `apps/desktop/src-tauri/target/release/bundle/macos/`，为独立 `.app` 包，不要求用户安装 Rust、Python 或 Node。
+
+### 卸载 Rust（如果不再需要）
+
+```bash
+rustup self uninstall
+```
+
+会清理 `~/.rustup` 和 `~/.cargo`。
+
 ## 推荐工作流
 
 1. 把相机存储卡里的 RAW 文件复制到电脑。

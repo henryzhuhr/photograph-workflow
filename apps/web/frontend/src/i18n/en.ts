@@ -20,6 +20,8 @@ export default {
     localDirectoryPathLabel: 'Full folder path',
     localDirectoryExampleLabel: 'Example',
     applyLocalDirectory: 'Use this folder',
+    chooseFolder: 'Choose Folder...',
+    revealInFinder: 'Show in Finder',
     loading: 'Loading...',
     noWorkspaceHint: 'Add a workspace below or enter a path.',
   },
