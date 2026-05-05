@@ -2,17 +2,18 @@
 
 ## 设计目标
 
-当前版本实现本地 Python 脚本和本地 Web UI，但技术设计必须支持长期演进：
+当前版本实现本地 Python 脚本和本地 Web UI。Web UI 是开发调试和未来桌面包装基础，不是面向用户的浏览器产品版本。技术设计必须支持长期演进：
 
 - 桌面包装 App。
 - macOS 端。
-- iOS 端。
+- iPad 端。
+- iPhone 端。
 - Capture One 等 Lightroom 之外的后期软件。
 - 更复杂的归档、同步和审计能力。
 
-当前版本不实现桌面包装 App、macOS 原生 App 或 iOS App，但不能把核心规则写死在脚本、终端文本、Lightroom 术语或本地文件系统细节里。
+当前版本不实现桌面包装 App、macOS 原生 App、iPad App 或 iPhone App，但不能把核心规则写死在脚本、终端文本、Lightroom 术语或本地文件系统细节里。
 
-脚本、Web UI、macOS App 和 iOS App 的具体技术路线见 [08-multi-platform-architecture.md](./08-multi-platform-architecture.md)。
+脚本、本地 Web UI、桌面/macOS App、iPad/iPhone App 的具体技术路线见 [08-multi-platform-architecture.md](./08-multi-platform-architecture.md)。
 
 ## 稳定核心
 
@@ -37,18 +38,18 @@
 
 | 能力 | 当前实现 | 未来扩展 |
 | --- | --- | --- |
-| 文件访问 | 本地文件系统 | macOS sandbox、iOS document picker、Web 后端存储 |
+| 文件访问 | 本地文件系统 | macOS sandbox、iPad/iPhone document picker、桌面包装后端存储 |
 | 元数据读取 | ExifTool | 平台 metadata API、云端 metadata worker |
 | 后期软件策略 | Lightroom sidecar 策略 | Capture One sidecar、软件专用目录规则 |
 | 归档执行 | Python ZIP | Keka、系统压缩服务、NAS 或云端归档 |
-| 用户确认 | 终端交互 | Web modal、桌面弹窗、移动端确认页 |
-| 计划展示 | 终端摘要 | Web 表格、桌面列表、移动端预览 |
+| 用户确认 | 终端交互 | 桌面弹窗、桌面包装前端 modal、移动端确认页 |
+| 计划展示 | 终端摘要 | 桌面列表、桌面包装前端表格、移动端预览 |
 
 核心用例只依赖端口接口，不依赖具体 adapter。
 
 ## 多端应用约束
 
-为了未来支持 Web、macOS 和 iOS，当前实现必须满足：
+为了未来支持桌面、iPad 和 iPhone App，当前实现必须满足：
 
 - 业务函数返回 Pydantic 模型或可序列化 dict，不返回仅适合终端阅读的字符串。
 - 所有路径在 JSON 输出中使用字符串；Python 内部可以使用 `Path`，但序列化边界不能暴露 Python 专用对象。

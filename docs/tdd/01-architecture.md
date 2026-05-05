@@ -22,7 +22,7 @@
 - 核心规则不直接调用 ExifTool、文件系统 rename、ZIP 写入或 Lightroom 相关能力。
 - 脚本入口只做参数解析、确认、进度展示和摘要渲染。
 - dry-run、rename、rollback、archive、archive_name 都返回结构化计划对象。
-- Web、macOS、iOS 或后续桌面端应该复用同一套计划对象和错误码，而不是解析命令行输出。
+- 本地 Web UI、桌面端、iPad 端和 iPhone 端应该复用同一套计划对象和错误码，而不是解析命令行输出。
 - 当前版本只支持 Lightroom 工作流，但核心模型不得命名为 Lightroom 专用概念；`.xmp`、`.acr`、机内 JPEG 等规则应通过 sidecar 策略表达。
 - 用户选择过的工作目录需要以稳定契约保存，当前版本采用 Linux/XDG 风格路径，未来 App 复用同一契约。
 
@@ -38,7 +38,7 @@
 | `ports` | 工作区解析、文件系统、元数据读取、归档、时钟、确认、后期软件策略接口 | `models` |
 | `adapters` | ExifTool、本地文件系统、zipfile、终端脚本等具体实现 | `ports`、标准库、外部工具 |
 
-依赖方向只能从外层指向内层。`domain` 不能反向依赖 `adapters`，否则未来做 Web/macOS/iOS 时会被本地脚本实现锁死。
+依赖方向只能从外层指向内层。`domain` 不能反向依赖 `adapters`，否则未来做本地 Web UI、桌面端、iPad 端或 iPhone 端时会被本地脚本实现锁死。
 
 ## 依赖策略
 
@@ -157,7 +157,7 @@ uv run python scripts/workspace.py remove <workspace-id>
 ~/.local/share/photograph-workflow/workspaces.json
 ```
 
-当前本地 adapter 负责读写这个文件。未来 Web、macOS、iOS 入口可以复用相同数据契约，但替换目录选择、权限授权和持久化 adapter。
+当前本地 adapter 负责读写这个文件。未来本地 Web UI、桌面端、iPad 端和 iPhone 端入口可以复用相同数据契约，但替换目录选择、权限授权和持久化 adapter。
 
 当前版本通过 `scripts/workspace.py` 暴露最小工作区管理能力：
 
@@ -174,12 +174,12 @@ uv run python scripts/workspace.py remove <workspace-id>
 
 | 端口 | 当前适配器 | 未来替换方向 |
 | --- | --- | --- |
-| `WorkspaceResolverPort` | XDG workspace 文件 | macOS 安全书签、iOS document picker、Web 用户空间 |
-| `FileSystemPort` | 本地文件系统 | macOS sandbox 文件访问、安全书签、Web 后端存储 |
+| `WorkspaceResolverPort` | XDG workspace 文件 | macOS 安全书签、iPad/iPhone document picker、桌面包装前端用户空间 |
+| `FileSystemPort` | 本地文件系统 | macOS sandbox 文件访问、安全书签、桌面包装后端存储 |
 | `MetadataReaderPort` | ExifTool JSON | 平台原生 metadata API、服务端 metadata worker |
 | `ArchiveWriterPort` | Python `zipfile` | Keka 集成、系统压缩服务、远端归档任务 |
 | `ClockPort` | 系统时间 | 测试固定时间、平台统一时间源 |
-| `ConfirmationPort` | 终端确认 | Web modal、macOS/iOS native dialog |
+| `ConfirmationPort` | 终端确认 | 桌面包装前端 modal、macOS/iPad/iPhone native dialog |
 | `PostProcessorProfilePort` | Lightroom sidecar 策略 | Capture One、Adobe Bridge、其他后期软件策略 |
 
 端口返回的数据必须转换为 `models` 中的结构化对象。adapter 捕获的异常不能直接向上抛出给脚本层，而应转换为稳定错误码和 `PlanIssue`。
@@ -188,7 +188,7 @@ uv run python scripts/workspace.py remove <workspace-id>
 
 新增平台或后期软件时，优先新增 adapter 或 profile：
 
-- 新增 Web/macOS/iOS 入口时，只新增 UI 层和必要 adapter，不复制 `domain` 规则。
+- 新增本地 Web UI、桌面端、iPad 端或 iPhone 端入口时，只新增 UI 层和必要 adapter，不复制 `domain` 规则。
 - 新增 Capture One 支持时，只新增 `PostProcessorProfile` 和必要 sidecar 策略，不改写 rename 主流程。
 - 新增归档后端时，只新增 `ArchiveWriterPort` 的 adapter，不改变 archive 计划契约。
 - 新增 metadata 后端时，只新增 `MetadataReaderPort` 的 adapter，不改变拍摄时间选择规则。

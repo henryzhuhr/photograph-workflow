@@ -1,0 +1,2000 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="cobalt">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Photograph Workflow App UX Prototype</title>
+    <style>
+      :root,
+      :root[data-theme="cobalt"] {
+        --bg: #f5f6f8;
+        --ink: #17202a;
+        --muted: #667085;
+        --line: #d8dee8;
+        --panel: #ffffff;
+        --panel-soft: #eef1f5;
+        --chrome: rgba(255, 255, 255, 0.94);
+        --chrome-soft: #fbfcfd;
+        --screen: #f5f6f8;
+        --device: #111827;
+        --accent: #3a63d8;
+        --accent-soft: #e9eeff;
+        --accent-line: #b9c8ff;
+        --danger: #c0392b;
+        --warning: #a66300;
+        --warning-soft: #fff4df;
+        --success: #16865a;
+        --success-soft: #e8f6ef;
+        --preview: #101827;
+        --preview-thumb: #44546a;
+        --radius: 14px;
+        --shadow: 0 24px 70px rgba(24, 33, 47, 0.13);
+      }
+
+      :root[data-theme="cyan"] {
+        --bg: #f2f7f8;
+        --ink: #14262d;
+        --muted: #65747a;
+        --line: #d4e2e5;
+        --panel: #ffffff;
+        --panel-soft: #edf5f6;
+        --chrome: rgba(255, 255, 255, 0.94);
+        --chrome-soft: #f8fcfc;
+        --screen: #f4f8f9;
+        --device: #10202a;
+        --accent: #0f7285;
+        --accent-soft: #e4f3f6;
+        --accent-line: #9acfd8;
+        --danger: #ba3a2e;
+        --warning: #9b610f;
+        --warning-soft: #fff3dc;
+        --success: #127450;
+        --success-soft: #e5f5ed;
+        --preview: #11242d;
+        --preview-thumb: #3f5d68;
+        --shadow: 0 24px 70px rgba(15, 47, 56, 0.13);
+      }
+
+      :root[data-theme="paper"] {
+        --bg: #f7f4ed;
+        --ink: #252019;
+        --muted: #756d60;
+        --line: #ded6c8;
+        --panel: #fffdf8;
+        --panel-soft: #f1ece2;
+        --chrome: rgba(255, 253, 248, 0.94);
+        --chrome-soft: #fbf7ef;
+        --screen: #f7f3eb;
+        --device: #1f1c17;
+        --accent: #4f6f52;
+        --accent-soft: #e8efe5;
+        --accent-line: #b9c9b2;
+        --danger: #a83b2f;
+        --warning: #9a6500;
+        --warning-soft: #fff0d1;
+        --success: #3f7a4b;
+        --success-soft: #e6f0e5;
+        --preview: #211f1a;
+        --preview-thumb: #5e594d;
+        --shadow: 0 24px 70px rgba(64, 54, 40, 0.16);
+      }
+
+      :root[data-theme="olive"] {
+        --bg: #f3f5f2;
+        --ink: #1f2a24;
+        --muted: #687269;
+        --line: #d7ddd4;
+        --panel: #ffffff;
+        --panel-soft: #eef2ec;
+        --chrome: rgba(255, 255, 255, 0.94);
+        --chrome-soft: #fafcf8;
+        --screen: #f4f6f2;
+        --device: #121a16;
+        --accent: #557245;
+        --accent-soft: #e9f1e4;
+        --accent-line: #bdcfb2;
+        --danger: #b33a2f;
+        --warning: #99640e;
+        --warning-soft: #fff3d9;
+        --success: #20714f;
+        --success-soft: #e5f3ea;
+        --preview: #152018;
+        --preview-thumb: #465743;
+        --shadow: 0 24px 70px rgba(42, 56, 45, 0.13);
+      }
+
+      :root[data-theme="darkroom"] {
+        --bg: #15171b;
+        --ink: #f4f6f8;
+        --muted: #a4adba;
+        --line: #343b46;
+        --panel: #20242b;
+        --panel-soft: #181c22;
+        --chrome: rgba(31, 35, 42, 0.95);
+        --chrome-soft: #1a1e24;
+        --screen: #171b21;
+        --device: #080b0f;
+        --accent: #7ba7ff;
+        --accent-soft: #1f2d4a;
+        --accent-line: #365892;
+        --danger: #ff877e;
+        --warning: #e5ae57;
+        --warning-soft: #3d2d16;
+        --success: #6fd39a;
+        --success-soft: #163728;
+        --preview: #0d1118;
+        --preview-thumb: #354253;
+        --shadow: 0 24px 80px rgba(0, 0, 0, 0.38);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+          "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+        line-height: 1.45;
+      }
+
+      button {
+        font: inherit;
+      }
+
+      .page {
+        width: min(1560px, calc(100vw - 40px));
+        margin: 0 auto;
+        padding: 32px 0 72px;
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 24px;
+        align-items: end;
+        margin-bottom: 18px;
+      }
+
+      .hero h1 {
+        margin: 0;
+        font-size: 30px;
+        letter-spacing: 0;
+      }
+
+      .hero p {
+        max-width: 840px;
+        margin: 8px 0 0;
+        color: var(--muted);
+      }
+
+      .prototype-switch {
+        display: flex;
+        gap: 4px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: var(--panel);
+        padding: 4px;
+        white-space: nowrap;
+      }
+
+      .prototype-switch a {
+        border-radius: 999px;
+        color: var(--muted);
+        padding: 6px 10px;
+        font-size: 13px;
+        font-weight: 650;
+        text-decoration: none;
+      }
+
+      .prototype-switch a:hover {
+        background: var(--panel-soft);
+        color: var(--ink);
+      }
+
+      .prototype-switch a.is-active {
+        background: var(--accent);
+        color: white;
+      }
+
+      .palette-overview {
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: var(--panel);
+        box-shadow: 0 12px 34px rgba(24, 33, 47, 0.08);
+        padding: 14px 14px 16px;
+        margin-bottom: 22px;
+      }
+
+      .palette-header {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 12px;
+      }
+
+      .palette-header h2 {
+        margin: 0;
+        font-size: 18px;
+      }
+
+      .palette-header p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .palette-strip {
+        display: flex;
+        gap: 10px;
+        overflow-x: auto;
+        padding: 2px 2px 8px;
+        scroll-snap-type: x proximity;
+      }
+
+      .palette-strip::-webkit-scrollbar {
+        height: 8px;
+      }
+
+      .palette-strip::-webkit-scrollbar-thumb {
+        border-radius: 999px;
+        background: var(--line);
+      }
+
+      .palette-card {
+        flex: 0 0 260px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: var(--panel-soft);
+        color: var(--ink);
+        cursor: pointer;
+        padding: 12px;
+        scroll-snap-align: start;
+        text-align: left;
+        transition:
+          border-color 0.16s ease,
+          box-shadow 0.16s ease,
+          transform 0.16s ease;
+      }
+
+      .palette-card:hover {
+        border-color: var(--accent-line);
+        box-shadow: 0 10px 24px rgba(24, 33, 47, 0.1);
+        transform: translateY(-1px);
+      }
+
+      .palette-card:focus-visible {
+        outline: 3px solid var(--accent-line);
+        outline-offset: 2px;
+      }
+
+      .palette-card.is-selected {
+        border-color: var(--accent);
+        box-shadow:
+          0 0 0 2px var(--accent-soft),
+          0 12px 28px rgba(24, 33, 47, 0.12);
+      }
+
+      .palette-card.is-selected::after {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        background: var(--accent);
+        color: #fff;
+        content: "Selected";
+        font-size: 11px;
+        font-weight: 760;
+        margin-top: 10px;
+        padding: 3px 8px;
+      }
+
+      .palette-card strong {
+        display: block;
+        font-size: 13px;
+      }
+
+      .palette-card p {
+        min-height: 36px;
+        margin: 6px 0 10px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .palette-dots {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 5px;
+      }
+
+      .palette-dots span {
+        height: 20px;
+        border: 1px solid rgba(24, 33, 47, 0.14);
+        border-radius: 999px;
+      }
+
+      .palette-cobalt span:nth-child(1) {
+        background: #f5f6f8;
+      }
+
+      .palette-cobalt span:nth-child(2) {
+        background: #ffffff;
+      }
+
+      .palette-cobalt span:nth-child(3) {
+        background: #3a63d8;
+      }
+
+      .palette-cobalt span:nth-child(4) {
+        background: #16865a;
+      }
+
+      .palette-cobalt span:nth-child(5) {
+        background: #a66300;
+      }
+
+      .palette-cyan span:nth-child(1) {
+        background: #f2f7f8;
+      }
+
+      .palette-cyan span:nth-child(2) {
+        background: #ffffff;
+      }
+
+      .palette-cyan span:nth-child(3) {
+        background: #0f7285;
+      }
+
+      .palette-cyan span:nth-child(4) {
+        background: #127450;
+      }
+
+      .palette-cyan span:nth-child(5) {
+        background: #9b610f;
+      }
+
+      .palette-paper span:nth-child(1) {
+        background: #f7f4ed;
+      }
+
+      .palette-paper span:nth-child(2) {
+        background: #fffdf8;
+      }
+
+      .palette-paper span:nth-child(3) {
+        background: #4f6f52;
+      }
+
+      .palette-paper span:nth-child(4) {
+        background: #3f7a4b;
+      }
+
+      .palette-paper span:nth-child(5) {
+        background: #9a6500;
+      }
+
+      .palette-olive span:nth-child(1) {
+        background: #f3f5f2;
+      }
+
+      .palette-olive span:nth-child(2) {
+        background: #ffffff;
+      }
+
+      .palette-olive span:nth-child(3) {
+        background: #557245;
+      }
+
+      .palette-olive span:nth-child(4) {
+        background: #20714f;
+      }
+
+      .palette-olive span:nth-child(5) {
+        background: #99640e;
+      }
+
+      .palette-darkroom span:nth-child(1) {
+        background: #15171b;
+      }
+
+      .palette-darkroom span:nth-child(2) {
+        background: #20242b;
+      }
+
+      .palette-darkroom span:nth-child(3) {
+        background: #7ba7ff;
+      }
+
+      .palette-darkroom span:nth-child(4) {
+        background: #6fd39a;
+      }
+
+      .palette-darkroom span:nth-child(5) {
+        background: #e5ae57;
+      }
+
+      .ux-annotations {
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: var(--panel);
+        box-shadow: 0 12px 34px rgba(24, 33, 47, 0.08);
+        margin-bottom: 22px;
+        padding: 16px;
+      }
+
+      .ux-annotations h2 {
+        margin: 0;
+        font-size: 18px;
+      }
+
+      .ux-annotations > p {
+        max-width: 980px;
+        margin: 6px 0 14px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .annotation-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .annotation-card {
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: var(--panel-soft);
+        padding: 12px;
+      }
+
+      .annotation-card strong {
+        display: block;
+        font-size: 13px;
+      }
+
+      .annotation-card p {
+        margin: 6px 0 0;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .journey-map {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 8px;
+        margin-top: 14px;
+      }
+
+      .journey-map-item {
+        border: 1px solid var(--accent-line);
+        border-radius: 12px;
+        background: var(--accent-soft);
+        padding: 10px;
+      }
+
+      .journey-map-item span {
+        color: var(--accent);
+        font-size: 11px;
+        font-weight: 800;
+      }
+
+      .journey-map-item strong {
+        display: block;
+        margin-top: 3px;
+        font-size: 13px;
+      }
+
+      .journey-map-item p {
+        margin: 5px 0 0;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .section {
+        margin-top: 24px;
+        scroll-margin-top: 24px;
+      }
+
+      .section-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        margin: 0 0 14px;
+      }
+
+      .section-title h2 {
+        margin: 0;
+        font-size: 20px;
+        letter-spacing: 0;
+      }
+
+      .section-title p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .device {
+        border: 1px solid rgba(24, 33, 47, 0.1);
+        border-radius: 28px;
+        background: var(--device);
+        box-shadow: var(--shadow);
+        padding: 14px;
+      }
+
+      .screen {
+        overflow: hidden;
+        min-height: 820px;
+        border-radius: 18px;
+        background: var(--screen);
+      }
+
+      .desktop-topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid var(--line);
+        background: var(--chrome);
+        padding: 16px 20px;
+      }
+
+      .brand {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        font-weight: 760;
+      }
+
+      .brand-mark {
+        display: grid;
+        width: 28px;
+        height: 28px;
+        place-items: center;
+        border-radius: 8px;
+        background: var(--accent);
+        color: white;
+        font-size: 13px;
+      }
+
+      .top-actions,
+      .project-actions,
+      .chip-row {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      .button {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: var(--panel);
+        color: var(--ink);
+        cursor: pointer;
+        padding: 8px 12px;
+        font-size: 13px;
+        font-weight: 650;
+        white-space: nowrap;
+      }
+
+      .button:focus-visible {
+        outline: 3px solid var(--accent-line);
+        outline-offset: 2px;
+      }
+
+      .button.primary {
+        border-color: var(--accent);
+        background: var(--accent);
+        color: white;
+      }
+
+      .button.danger {
+        border-color: var(--danger);
+        background: var(--danger);
+        color: white;
+      }
+
+      .status {
+        border-radius: 999px;
+        background: var(--success-soft);
+        color: var(--success);
+        padding: 6px 10px;
+        font-size: 12px;
+        font-weight: 760;
+      }
+
+      .project-bar {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 20px;
+        align-items: center;
+        border-bottom: 1px solid var(--line);
+        background: var(--panel);
+        padding: 18px 20px;
+      }
+
+      .label {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 760;
+        text-transform: uppercase;
+      }
+
+      .path {
+        margin-top: 3px;
+        color: var(--ink);
+        font-family: "SF Mono", Menlo, Consolas, monospace;
+        font-size: 13px;
+        overflow-wrap: anywhere;
+      }
+
+      .desktop-workbench {
+        display: grid;
+        grid-template-columns: 238px minmax(0, 1fr) 278px;
+        min-height: 720px;
+      }
+
+      .sidebar,
+      .inspector {
+        background: var(--chrome-soft);
+        padding: 18px;
+      }
+
+      .sidebar {
+        border-right: 1px solid var(--line);
+      }
+
+      .inspector {
+        border-left: 1px solid var(--line);
+      }
+
+      .step-list {
+        display: grid;
+        gap: 6px;
+        margin-top: 12px;
+      }
+
+      .step {
+        display: grid;
+        grid-template-columns: 28px minmax(0, 1fr);
+        gap: 10px;
+        align-items: start;
+        border: 1px solid transparent;
+        border-radius: 12px;
+        padding: 10px;
+        color: var(--muted);
+      }
+
+      .step[role="button"] {
+        cursor: pointer;
+      }
+
+      .step[role="button"]:hover {
+        border-color: var(--accent-line);
+        background: var(--panel);
+      }
+
+      .step[role="button"]:focus-visible {
+        outline: 3px solid var(--accent-line);
+        outline-offset: 2px;
+      }
+
+      .step.active {
+        border-color: var(--accent-line);
+        background: var(--accent-soft);
+        color: var(--accent);
+      }
+
+      .step.done {
+        color: var(--accent);
+      }
+
+      .step-dot {
+        display: grid;
+        width: 24px;
+        height: 24px;
+        place-items: center;
+        border: 1px solid currentColor;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 800;
+      }
+
+      .step strong {
+        display: block;
+        color: currentColor;
+        font-size: 14px;
+      }
+
+      .step span:last-child {
+        display: block;
+        margin-top: 2px;
+        font-size: 12px;
+      }
+
+      .utility-link {
+        margin-top: 20px;
+        border-top: 1px solid var(--line);
+        padding-top: 14px;
+      }
+
+      .main {
+        padding: 22px;
+      }
+
+      .stage-heading {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 18px;
+        margin-bottom: 16px;
+      }
+
+      .stage-heading h3 {
+        margin: 0;
+        font-size: 22px;
+      }
+
+      .stage-heading p {
+        margin: 5px 0 0;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .panel {
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--panel);
+      }
+
+      .panel + .panel {
+        margin-top: 14px;
+      }
+
+      .panel-pad {
+        padding: 16px;
+      }
+
+      .journey-panel {
+        display: grid;
+        gap: 12px;
+        border-color: var(--accent-line);
+        background: var(--accent-soft);
+        margin-bottom: 16px;
+      }
+
+      .journey-panel strong {
+        display: block;
+        font-size: 16px;
+      }
+
+      .journey-panel p {
+        margin: 4px 0 0;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .journey-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .split-demo {
+        display: grid;
+        grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.85fr);
+        gap: 18px;
+      }
+
+      .template-box {
+        display: grid;
+        gap: 12px;
+      }
+
+      .input-like {
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: var(--panel-soft);
+        padding: 12px;
+        font-family: "SF Mono", Menlo, Consolas, monospace;
+        font-size: 13px;
+        overflow-wrap: anywhere;
+      }
+
+      .chip {
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: var(--panel);
+        color: var(--accent);
+        padding: 6px 10px;
+        font-family: "SF Mono", Menlo, Consolas, monospace;
+        font-size: 12px;
+        font-weight: 720;
+      }
+
+      .preview-sample {
+        display: grid;
+        grid-template-columns: 70px minmax(0, 1fr);
+        gap: 10px;
+        align-items: center;
+        border-radius: 12px;
+        background: var(--preview);
+        color: white;
+        padding: 14px;
+      }
+
+      .sample-thumb {
+        aspect-ratio: 1.2;
+        border-radius: 10px;
+        background:
+          linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0)),
+          var(--preview-thumb);
+      }
+
+      .directory-list,
+      .rename-plan {
+        display: grid;
+        gap: 8px;
+        margin-top: 14px;
+      }
+
+      .directory-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 14px;
+        align-items: center;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: var(--panel);
+        padding: 12px;
+      }
+
+      .directory-row strong {
+        display: block;
+        font-size: 14px;
+      }
+
+      .directory-row small {
+        display: block;
+        margin-top: 2px;
+        color: var(--muted);
+      }
+
+      .rename-line {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 24px minmax(0, 1.2fr);
+        gap: 10px;
+        align-items: center;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: var(--panel-soft);
+        padding: 10px;
+        font-family: "SF Mono", Menlo, Consolas, monospace;
+        font-size: 12px;
+      }
+
+      .arrow {
+        color: var(--muted);
+        text-align: center;
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 26px;
+        border-radius: 999px;
+        padding: 4px 9px;
+        font-size: 12px;
+        font-weight: 760;
+        white-space: nowrap;
+      }
+
+      .pill.ready {
+        background: var(--success-soft);
+        color: var(--success);
+      }
+
+      .pill.warn {
+        background: var(--warning-soft);
+        color: var(--warning);
+      }
+
+      .pill.info {
+        background: var(--accent-soft);
+        color: var(--accent);
+      }
+
+      .inspector h4 {
+        margin: 0 0 10px;
+        font-size: 15px;
+      }
+
+      .inspector-card {
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: var(--panel);
+        padding: 12px;
+        margin-bottom: 10px;
+      }
+
+      .inspector-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
+      .mini-stat {
+        border-radius: 10px;
+        background: var(--panel-soft);
+        padding: 10px;
+      }
+
+      .mini-stat strong {
+        display: block;
+        font-size: 18px;
+      }
+
+      .mini-stat span {
+        color: var(--muted);
+        font-size: 11px;
+      }
+
+      .next-step {
+        border-color: var(--accent-line);
+        background: var(--accent-soft);
+      }
+
+      .caption {
+        margin-top: 12px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .ipad-device {
+        width: min(1100px, 100%);
+        margin: 0 auto;
+      }
+
+      .ipad-screen {
+        min-height: 720px;
+      }
+
+      .ipad-grid {
+        display: grid;
+        grid-template-columns: 260px minmax(0, 1fr) 230px;
+        min-height: 720px;
+      }
+
+      .ipad-sidebar,
+      .ipad-inspector {
+        background: var(--chrome-soft);
+        padding: 18px;
+      }
+
+      .ipad-sidebar {
+        border-right: 1px solid var(--line);
+      }
+
+      .ipad-inspector {
+        border-left: 1px solid var(--line);
+      }
+
+      .ipad-main {
+        padding: 20px;
+      }
+
+      .touch-card {
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: var(--panel);
+        padding: 16px;
+        min-height: 76px;
+      }
+
+      .touch-card + .touch-card {
+        margin-top: 12px;
+      }
+
+      .mobile-layout {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+        align-items: start;
+      }
+
+      .phone-wrap {
+        display: flex;
+        justify-content: center;
+      }
+
+      .phone-device {
+        width: 390px;
+        border-radius: 42px;
+        padding: 12px;
+      }
+
+      .phone-screen {
+        position: relative;
+        min-height: 812px;
+        border-radius: 32px;
+        background: var(--screen);
+      }
+
+      .phone-header {
+        padding: 20px 18px 12px;
+      }
+
+      .phone-header h3 {
+        margin: 0;
+        font-size: 18px;
+      }
+
+      .phone-header p {
+        margin: 4px 0 0;
+        color: var(--muted);
+        font-size: 12px;
+        overflow-wrap: anywhere;
+      }
+
+      .progress {
+        padding: 0 18px 14px;
+      }
+
+      .progress-label {
+        display: flex;
+        justify-content: space-between;
+        color: var(--muted);
+        font-size: 12px;
+        margin-bottom: 8px;
+      }
+
+      .progress-dots {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 6px;
+      }
+
+      .progress-dots span {
+        height: 6px;
+        border-radius: 999px;
+        background: var(--line);
+      }
+
+      .progress-dots span.done,
+      .progress-dots span.active {
+        background: var(--accent);
+      }
+
+      .phone-stage-summary {
+        border: 1px solid var(--accent-line);
+        border-radius: 18px;
+        background: var(--accent-soft);
+        margin-top: 12px;
+        padding: 12px;
+      }
+
+      .phone-stage-summary strong {
+        display: block;
+        margin-top: 3px;
+        color: var(--accent);
+        font-size: 18px;
+      }
+
+      .phone-stage-summary p {
+        margin: 4px 0 0;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .phone-step-strip {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        padding: 12px 0 2px;
+        scroll-snap-type: x proximity;
+      }
+
+      .phone-step-strip::-webkit-scrollbar {
+        display: none;
+      }
+
+      .phone-step {
+        display: inline-flex;
+        flex: 0 0 auto;
+        gap: 6px;
+        align-items: center;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: var(--panel);
+        color: var(--muted);
+        cursor: pointer;
+        padding: 7px 10px 7px 8px;
+        font-size: 12px;
+        font-weight: 700;
+        scroll-snap-align: start;
+      }
+
+      .phone-step span {
+        display: grid;
+        width: 20px;
+        height: 20px;
+        place-items: center;
+        border: 1px solid currentColor;
+        border-radius: 999px;
+        font-size: 10px;
+        font-weight: 800;
+      }
+
+      .phone-step.done {
+        border-color: var(--accent-line);
+        background: var(--accent-soft);
+        color: var(--accent);
+      }
+
+      .phone-step.active {
+        border-color: var(--accent);
+        background: var(--accent);
+        color: white;
+      }
+
+      .phone-step:focus-visible {
+        outline: 3px solid var(--accent-line);
+        outline-offset: 2px;
+      }
+
+      .phone-content {
+        padding: 0 14px 92px;
+      }
+
+      .phone-card {
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: var(--panel);
+        padding: 14px;
+        margin-bottom: 10px;
+      }
+
+      .phone-metrics {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
+      .phone-bottom {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        border-top: 1px solid var(--line);
+        border-radius: 0 0 32px 32px;
+        background: var(--chrome);
+        padding: 12px 16px 18px;
+      }
+
+      .phone-bottom .button {
+        display: block;
+        width: 100%;
+        text-align: center;
+        padding: 12px 14px;
+      }
+
+      @media (max-width: 1180px) {
+        .hero,
+        .project-bar {
+          grid-template-columns: 1fr;
+        }
+
+        .desktop-workbench {
+          grid-template-columns: 220px minmax(0, 1fr);
+        }
+
+        .ipad-grid {
+          grid-template-columns: 220px minmax(0, 1fr);
+        }
+
+        .inspector,
+        .ipad-inspector {
+          display: none;
+        }
+
+        .mobile-layout {
+          grid-template-columns: 1fr;
+        }
+
+        .annotation-grid,
+        .journey-map {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      @media (max-width: 760px) {
+        .page {
+          width: min(100vw - 20px, 520px);
+          padding-top: 18px;
+        }
+
+        .desktop-workbench {
+          grid-template-columns: 1fr;
+        }
+
+        .ipad-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .sidebar {
+          border-right: 0;
+          border-bottom: 1px solid var(--line);
+        }
+
+        .ipad-sidebar {
+          border-right: 0;
+          border-bottom: 1px solid var(--line);
+        }
+
+        .phone-device {
+          width: min(390px, 100%);
+        }
+
+        .annotation-grid,
+        .journey-map {
+          grid-template-columns: 1fr;
+        }
+
+        .split-demo,
+        .directory-row,
+        .rename-line {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <header class="hero">
+        <div>
+          <h1>Photograph Workflow App UX Prototype</h1>
+          <p>
+            这版原型保留桌面端、iPad 端和 iPhone 端三个 App 形态，不设计浏览器产品版本。
+            本地目录选择、最近项目、Reveal in Finder 和长期目录授权由桌面或系统 App 能力提供。
+          </p>
+        </div>
+        <nav class="prototype-switch" aria-label="UX views">
+          <a class="is-active" href="#desktop-app" data-view-link="desktop-app">Desktop</a>
+          <a href="#ipad-app" data-view-link="ipad-app">iPad</a>
+          <a href="#iphone-app" data-view-link="iphone-app">iPhone</a>
+        </nav>
+      </header>
+
+      <section class="palette-overview" aria-labelledby="paletteTitle">
+        <div class="palette-header">
+          <div>
+            <h2 id="paletteTitle">配色方案</h2>
+            <p>横向滚动查看更多方案，点击色板切换主题。主色用于流程和主操作，绿色只用于真实成功状态。</p>
+          </div>
+        </div>
+        <div class="palette-strip">
+          <button class="palette-card" type="button" data-theme-option="cobalt">
+            <strong>Neutral Graphite + Soft Cobalt</strong>
+            <p>推荐默认。中性文件工作台，蓝色只做操作点缀。</p>
+            <div class="palette-dots palette-cobalt" aria-label="Cobalt palette">
+              <span></span><span></span><span></span><span></span><span></span>
+            </div>
+          </button>
+          <button class="palette-card" type="button" data-theme-option="cyan">
+            <strong>Cool Mono + Cyan Accent</strong>
+            <p>更冷静、技术感更强，适合偏工程化的界面观感。</p>
+            <div class="palette-dots palette-cyan" aria-label="Cyan palette">
+              <span></span><span></span><span></span><span></span><span></span>
+            </div>
+          </button>
+          <button class="palette-card" type="button" data-theme-option="paper">
+            <strong>Warm Paper + Sage</strong>
+            <p>更接近摄影工作室和纸质档案，但避免过度复古。</p>
+            <div class="palette-dots palette-paper" aria-label="Paper palette">
+              <span></span><span></span><span></span><span></span><span></span>
+            </div>
+          </button>
+          <button class="palette-card" type="button" data-theme-option="olive">
+            <strong>Silver Olive</strong>
+            <p>低饱和、克制，适合长时间批量管理文件。</p>
+            <div class="palette-dots palette-olive" aria-label="Olive palette">
+              <span></span><span></span><span></span><span></span><span></span>
+            </div>
+          </button>
+          <button class="palette-card" type="button" data-theme-option="darkroom">
+            <strong>Low-light Darkroom</strong>
+            <p>低光环境使用，不作为默认主题。</p>
+            <div class="palette-dots palette-darkroom" aria-label="Darkroom palette">
+              <span></span><span></span><span></span><span></span><span></span>
+            </div>
+          </button>
+        </div>
+      </section>
+
+      <section class="ux-annotations" aria-labelledby="uxAnnotationsTitle">
+        <h2 id="uxAnnotationsTitle">UX 注解：完整用户旅程</h2>
+        <p>
+          这份原型不是只评审布局。下面的注解说明用户从选择目录到归档的完整路径，以及每一步需要看到的系统反馈、
+          可点击动作、安全确认和异常阻断点。
+        </p>
+        <div class="annotation-grid">
+          <div class="annotation-card">
+            <strong>用户目标</strong>
+            <p>每个阶段先回答“用户此刻想完成什么”，避免界面只堆功能按钮。</p>
+          </div>
+          <div class="annotation-card">
+            <strong>系统反馈</strong>
+            <p>扫描结果、状态、警告、错误和下一步提示必须在操作后即时可见。</p>
+          </div>
+          <div class="annotation-card">
+            <strong>安全门槛</strong>
+            <p>重命名、回滚和归档必须先 dry-run，再由用户确认执行。</p>
+          </div>
+          <div class="annotation-card">
+            <strong>异常分支</strong>
+            <p>元数据不可读、文件名冲突、目录授权失效会阻止继续并给出原因。</p>
+          </div>
+        </div>
+        <div class="journey-map" aria-label="Complete user journey map">
+          <div class="journey-map-item">
+            <span>Step 1</span>
+            <strong>准备项目</strong>
+            <p>选择并授权已经整理好的照片项目目录。</p>
+          </div>
+          <div class="journey-map-item">
+            <span>Step 2</span>
+            <strong>检查素材</strong>
+            <p>确认 RAW/DNG、sidecar、跳过文件和阻塞错误。</p>
+          </div>
+          <div class="journey-map-item">
+            <span>Step 3</span>
+            <strong>命名规则</strong>
+            <p>配置模板、目录标题和占位符，生成可预览规则。</p>
+          </div>
+          <div class="journey-map-item">
+            <span>Step 4</span>
+            <strong>执行重命名</strong>
+            <p>检查 dry-run 计划，二次确认后写入文件名。</p>
+          </div>
+          <div class="journey-map-item">
+            <span>Step 5</span>
+            <strong>后期检查点</strong>
+            <p>进入 Lightroom 后期，App 不接管修图和 catalog。</p>
+          </div>
+          <div class="journey-map-item">
+            <span>Step 6</span>
+            <strong>归档</strong>
+            <p>复制推荐压缩包名或执行 ZIP 归档计划。</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="desktop-app">
+        <div class="section-title">
+          <div>
+            <h2>Desktop App：本地文件工作台</h2>
+            <p>面向 macOS / Tauri / Electron 桌面应用，强调系统目录选择、Finder 集成和本地文件安全确认。</p>
+          </div>
+        </div>
+
+        <div class="device">
+          <div class="screen">
+            <div class="desktop-topbar">
+              <div class="brand">
+                <div class="brand-mark">PW</div>
+                <span>Photograph Workflow</span>
+              </div>
+              <div class="top-actions">
+                <span class="status" id="desktopWorkflowStatus">Ready for rename</span>
+                <button class="button">Language</button>
+                <button class="button">Settings</button>
+              </div>
+            </div>
+
+            <div class="project-bar">
+              <div>
+                <div class="label">Current project</div>
+                <div class="path">/Users/me/Photograph-Raw/Travel/Shanghai</div>
+              </div>
+              <div class="project-actions">
+                <button class="button primary">Choose folder</button>
+                <button class="button">Recent projects</button>
+                <button class="button">Reveal in Finder</button>
+              </div>
+            </div>
+
+            <div class="desktop-workbench">
+              <aside class="sidebar">
+                <div class="label">Workflow</div>
+                <div class="step-list">
+                  <div class="step done" data-journey-step="prepare" role="button" tabindex="0">
+                    <div class="step-dot">1</div>
+                    <div><strong>准备项目</strong><span>系统目录授权</span></div>
+                  </div>
+                  <div class="step done" data-journey-step="scan" role="button" tabindex="0">
+                    <div class="step-dot">2</div>
+                    <div><strong>检查素材</strong><span>扫描 RAW 与 sidecar</span></div>
+                  </div>
+                  <div class="step active" data-journey-step="rename" role="button" tabindex="0">
+                    <div class="step-dot">3</div>
+                    <div><strong>命名规则</strong><span>模板和目录标题</span></div>
+                  </div>
+                  <div class="step" data-journey-step="execute" role="button" tabindex="0">
+                    <div class="step-dot">4</div>
+                    <div><strong>执行重命名</strong><span>预览后写入</span></div>
+                  </div>
+                  <div class="step" data-journey-step="postprocess" role="button" tabindex="0">
+                    <div class="step-dot">5</div>
+                    <div><strong>Lightroom 后期</strong><span>流程 checkpoint</span></div>
+                  </div>
+                  <div class="step" data-journey-step="archive" role="button" tabindex="0">
+                    <div class="step-dot">6</div>
+                    <div><strong>归档</strong><span>复制名称或 ZIP</span></div>
+                  </div>
+                </div>
+                <div class="utility-link">
+                  <button class="button">Safety center</button>
+                </div>
+              </aside>
+
+              <section class="main">
+                <div class="stage-heading">
+                  <div>
+                    <div class="label" id="desktopStepLabel">Step 3</div>
+                    <h3 id="desktopStepTitle">命名规则</h3>
+                    <p id="desktopStepDescription">模板对整个项目生效，目录标题可以按照片目录覆盖。同一目录内所有照片必须遵守同一规范。</p>
+                  </div>
+                  <button class="button primary" id="desktopPrimaryAction" type="button" data-journey-next>
+                    Generate plan
+                  </button>
+                </div>
+
+                <div class="panel panel-pad journey-panel" aria-live="polite">
+                  <div>
+                    <div class="label">User journey</div>
+                    <strong id="journeyTitle">命名规则确认</strong>
+                    <p id="journeyBody">点击左侧流程阶段可以查看每一步的用户意图、系统反馈和下一步动作。</p>
+                  </div>
+                  <div class="journey-actions">
+                    <span class="pill info" id="journeyUserAction">用户确认模板</span>
+                    <span class="pill ready" id="journeySystemResponse">系统生成 dry-run 计划</span>
+                  </div>
+                </div>
+
+                <div class="split-demo">
+                  <div class="panel panel-pad template-box">
+                    <div>
+                      <div class="label">Template</div>
+                      <div class="input-like">{date:YYYYMMDD}-{title}-{date:HHMMSS}_{original}</div>
+                    </div>
+                    <div>
+                      <div class="label">Insert placeholders</div>
+                      <div class="chip-row" style="margin-top: 8px">
+                        <span class="chip">{date:YYYYMMDD}</span>
+                        <span class="chip">{title}</span>
+                        <span class="chip">{date:HHMMSS}</span>
+                        <span class="chip">{original}</span>
+                      </div>
+                    </div>
+                    <div class="preview-sample">
+                      <div class="sample-thumb"></div>
+                      <div>
+                        <div class="label" style="color: #9fb1c7">Live example</div>
+                        <div class="path" style="color: white">20260101-上海东方明珠-080001_DSC00000.ARW</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="panel panel-pad">
+                    <div class="label">Directory titles</div>
+                    <div class="directory-list">
+                      <div class="directory-row">
+                        <div>
+                          <strong>20260101-上海东方明珠</strong>
+                          <small>title: 上海东方明珠</small>
+                        </div>
+                        <span class="pill ready">Ready</span>
+                      </div>
+                      <div class="directory-row">
+                        <div>
+                          <strong>20260101-HongKong_Central_Market</strong>
+                          <small>title: HongKong_Central_Market</small>
+                        </div>
+                        <span class="pill warn">Warning</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="panel panel-pad">
+                  <div class="stage-heading" style="margin-bottom: 12px">
+                    <div>
+                      <div class="label">Rename preview</div>
+                      <h3 style="font-size: 18px">按目录预览变更</h3>
+                    </div>
+                    <span class="pill info">839 files</span>
+                  </div>
+                  <div class="rename-plan">
+                    <div class="rename-line">
+                      <span>DSC00000.ARW</span>
+                      <span class="arrow">→</span>
+                      <span>20260101-上海东方明珠-080001_DSC00000.ARW</span>
+                    </div>
+                    <div class="rename-line">
+                      <span>DSC00000.XMP</span>
+                      <span class="arrow">→</span>
+                      <span>20260101-上海东方明珠-080001_DSC00000.XMP</span>
+                    </div>
+                    <div class="rename-line">
+                      <span>DJI_00000.DNG</span>
+                      <span class="arrow">→</span>
+                      <span>20260101-中环街市-080003_DJI_00000.DNG</span>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <aside class="inspector">
+                <h4>Project summary</h4>
+                <div class="inspector-card">
+                  <div class="inspector-grid">
+                    <div class="mini-stat"><strong>18</strong><span>Photo dirs</span></div>
+                    <div class="mini-stat"><strong>420</strong><span>RAW/DNG</span></div>
+                    <div class="mini-stat"><strong>419</strong><span>Sidecar</span></div>
+                    <div class="mini-stat"><strong>0</strong><span>Errors</span></div>
+                  </div>
+                </div>
+                <div class="inspector-card next-step">
+                  <div class="label">Next action</div>
+                  <strong id="desktopNextAction">Generate rename plan</strong>
+                  <p class="caption" id="desktopNextHint">模板确认后进入 dry-run，不会修改任何文件。</p>
+                </div>
+                <div class="inspector-card">
+                  <div class="label">Local access</div>
+                  <p class="caption">目录来自系统选择器授权，可保存到最近项目并恢复访问。</p>
+                </div>
+              </aside>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="ipad-app">
+        <div class="section-title">
+          <div>
+            <h2>iPad App：触摸友好的双栏工作台</h2>
+            <p>保留桌面端项目上下文，但用卡片替代表格，右侧检查面板可以收起。</p>
+          </div>
+        </div>
+
+        <div class="device ipad-device">
+          <div class="screen ipad-screen">
+            <div class="ipad-grid">
+              <aside class="ipad-sidebar">
+                <div class="brand">
+                  <div class="brand-mark">PW</div>
+                  <span>Workflow</span>
+                </div>
+                <div style="margin-top: 18px">
+                  <div class="label">Project</div>
+                  <div class="path">/Volumes/Photos/Shanghai</div>
+                </div>
+                <div class="step-list">
+                  <div class="step done" data-journey-step="prepare" role="button" tabindex="0">
+                    <div class="step-dot">1</div>
+                    <div><strong>准备</strong><span>目录已授权</span></div>
+                  </div>
+                  <div class="step active" data-journey-step="scan" role="button" tabindex="0">
+                    <div class="step-dot">2</div>
+                    <div><strong>检查素材</strong><span>目录状态</span></div>
+                  </div>
+                  <div class="step" data-journey-step="rename" role="button" tabindex="0">
+                    <div class="step-dot">3</div>
+                    <div><strong>命名</strong><span>模板与标题</span></div>
+                  </div>
+                  <div class="step" data-journey-step="execute" role="button" tabindex="0">
+                    <div class="step-dot">4</div>
+                    <div><strong>执行</strong><span>确认写入</span></div>
+                  </div>
+                  <div class="step" data-journey-step="postprocess" role="button" tabindex="0">
+                    <div class="step-dot">5</div>
+                    <div><strong>后期</strong><span>Lightroom</span></div>
+                  </div>
+                  <div class="step" data-journey-step="archive" role="button" tabindex="0">
+                    <div class="step-dot">6</div>
+                    <div><strong>归档</strong><span>推荐名称</span></div>
+                  </div>
+                </div>
+              </aside>
+
+              <section class="ipad-main">
+                <div class="stage-heading">
+                  <div>
+                    <div class="label" id="ipadStepLabel">Step 2</div>
+                    <h3 id="ipadStepTitle">检查素材</h3>
+                    <p id="ipadStepDescription">扫描结果按照片目录组织。文件明细进入目录详情后查看。</p>
+                  </div>
+                  <button class="button primary" id="ipadPrimaryAction" type="button" data-journey-next>
+                    Scan again
+                  </button>
+                </div>
+                <div class="panel panel-pad journey-panel" aria-live="polite">
+                  <div>
+                    <div class="label">Touch journey</div>
+                    <strong id="ipadJourneyTitle">确认素材状态</strong>
+                    <p id="ipadJourneyBody">点击左侧阶段，iPad 工作台会切换到对应流程说明。</p>
+                  </div>
+                  <div class="journey-actions">
+                    <span class="pill info" id="ipadJourneyUserAction">用户查看目录状态</span>
+                    <span class="pill ready" id="ipadJourneySystemResponse">系统标记风险</span>
+                  </div>
+                </div>
+                <div class="touch-card">
+                  <strong>20260101-上海东方明珠</strong>
+                  <p class="caption">RAW 42 · Sidecar 42 · .metadata.json ready</p>
+                  <span class="pill ready">Ready</span>
+                </div>
+                <div class="touch-card">
+                  <strong>20260101-HongKong_Central_Market</strong>
+                  <p class="caption">RAW 31 · Sidecar 30 · one optional JPEG missing</p>
+                  <span class="pill warn">Warning</span>
+                </div>
+                <div class="touch-card">
+                  <strong>20260101-中环街市</strong>
+                  <p class="caption">RAW 18 · Sidecar 18 · DJI DNG confirmed</p>
+                  <span class="pill ready">Ready</span>
+                </div>
+              </section>
+
+              <aside class="ipad-inspector">
+                <h4>检查面板</h4>
+                <div class="inspector-card next-step">
+                  <div class="label">Next</div>
+                  <strong id="ipadNextAction">继续：命名规则</strong>
+                  <p class="caption" id="ipadNextHint">没有阻塞错误后进入命名模板。</p>
+                </div>
+                <div class="inspector-card">
+                  <div class="label">Risk</div>
+                  <p class="caption">0 blocking errors. Warnings will stay visible until execution.</p>
+                </div>
+              </aside>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="iphone-app">
+        <div class="section-title">
+          <div>
+            <h2>iPhone App：单列向导</h2>
+            <p>每次只处理一个阶段，底部固定主按钮，危险操作进入确认页或 sheet。</p>
+          </div>
+        </div>
+
+        <div class="phone-wrap">
+          <div class="device phone-device">
+            <div class="screen phone-screen">
+              <header class="phone-header">
+                <h3>Photograph Workflow</h3>
+                <p>/Volumes/Photos/Shanghai</p>
+              </header>
+              <div class="progress">
+                <div class="progress-label">
+                  <span id="phoneStepCount">2 / 6</span>
+                  <strong id="phoneStepTitle">检查素材</strong>
+                </div>
+                <div class="progress-dots">
+                  <span class="done" data-phone-progress-dot></span>
+                  <span class="active" data-phone-progress-dot></span>
+                  <span data-phone-progress-dot></span>
+                  <span data-phone-progress-dot></span>
+                  <span data-phone-progress-dot></span>
+                  <span data-phone-progress-dot></span>
+                </div>
+                <div class="phone-stage-summary" aria-live="polite">
+                  <div class="label">当前阶段</div>
+                  <strong id="phoneCurrentStageTitle">检查素材</strong>
+                  <p id="phoneCurrentStageHint">Step 2 / 6 · 用户查看目录状态</p>
+                </div>
+                <div class="phone-step-strip" aria-label="iPhone workflow steps">
+                  <button class="phone-step done" type="button" data-journey-step="prepare">
+                    <span>1</span>准备
+                  </button>
+                  <button class="phone-step active" type="button" data-journey-step="scan">
+                    <span>2</span>检查
+                  </button>
+                  <button class="phone-step" type="button" data-journey-step="rename">
+                    <span>3</span>命名
+                  </button>
+                  <button class="phone-step" type="button" data-journey-step="execute">
+                    <span>4</span>执行
+                  </button>
+                  <button class="phone-step" type="button" data-journey-step="postprocess">
+                    <span>5</span>后期
+                  </button>
+                  <button class="phone-step" type="button" data-journey-step="archive">
+                    <span>6</span>归档
+                  </button>
+                </div>
+              </div>
+              <div class="phone-content">
+                <div class="phone-card">
+                  <div class="label">当前旅程</div>
+                  <strong id="phoneJourneyTitle">确认素材状态</strong>
+                  <p class="caption" id="phoneJourneyBody">iPhone 端每次只展示一个阶段，底部按钮推进下一步。</p>
+                  <p class="caption" id="phoneStepDescription">扫描结果按照片目录组织。文件明细进入目录详情后查看。</p>
+                </div>
+                <div class="phone-card">
+                  <div class="label">素材摘要</div>
+                  <div class="phone-metrics" style="margin-top: 10px">
+                    <div class="mini-stat"><strong>420</strong><span>RAW/DNG</span></div>
+                    <div class="mini-stat"><strong>419</strong><span>Sidecar</span></div>
+                    <div class="mini-stat"><strong>18</strong><span>目录</span></div>
+                    <div class="mini-stat"><strong>0</strong><span>Error</span></div>
+                  </div>
+                </div>
+                <div class="phone-card">
+                  <strong>20260101-上海东方明珠</strong>
+                  <p class="caption">RAW 42 · Sidecar 42</p>
+                  <span class="pill ready">Ready</span>
+                </div>
+                <div class="phone-card">
+                  <strong>20260101-HongKong_Central_Market</strong>
+                  <p class="caption">RAW 31 · Sidecar 30</p>
+                  <span class="pill warn">Warning</span>
+                </div>
+                <div class="phone-card">
+                  <strong>20260101-中环街市</strong>
+                  <p class="caption">RAW 18 · DJI DNG confirmed</p>
+                  <span class="pill ready">Ready</span>
+                </div>
+              </div>
+              <div class="phone-bottom">
+                <button class="button primary" id="phonePrimaryAction" type="button" data-journey-next>
+                  继续：命名规则
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+    <script>
+      const themeCards = document.querySelectorAll("[data-theme-option]");
+      const viewLinks = document.querySelectorAll("[data-view-link]");
+      const viewSections = document.querySelectorAll("#desktop-app, #ipad-app, #iphone-app");
+      const journeyTriggers = document.querySelectorAll("[data-journey-step]");
+      const journeyActions = document.querySelectorAll("[data-journey-next]");
+      const phoneProgressDots = document.querySelectorAll("[data-phone-progress-dot]");
+      const savedTheme = localStorage.getItem("photograph-workflow-theme") || "cobalt";
+      const journeyOrder = ["prepare", "scan", "rename", "execute", "postprocess", "archive"];
+      let activeJourneyStep = "rename";
+
+      const journeyContent = {
+        prepare: {
+          label: "Step 1",
+          title: "准备项目",
+          description: "用户通过系统目录选择器授权照片项目目录。系统记录最近项目，但不直接修改任何文件。",
+          status: "Waiting for folder access",
+          action: "Choose folder",
+          journeyTitle: "选择并授权目录",
+          body: "用户从 Finder 或系统目录选择器选择项目根目录。App 校验该目录可读写，并把它保存为最近项目。",
+          userAction: "用户选择目录",
+          systemResponse: "系统保存授权",
+          nextAction: "Scan project",
+          nextHint: "目录授权完成后进入素材扫描。"
+        },
+        scan: {
+          label: "Step 2",
+          title: "检查素材",
+          description: "系统递归扫描照片目录，按 RAW/DNG、同 stem sidecar、跳过文件和阻塞错误组织结果。",
+          status: "Scan complete",
+          action: "Review scan",
+          journeyTitle: "确认素材状态",
+          body: "用户先看目录级摘要，必要时展开问题目录。元数据读取失败会阻止依赖 {date} 的命名。",
+          userAction: "用户查看目录状态",
+          systemResponse: "系统标记风险",
+          nextAction: "Configure rename",
+          nextHint: "没有阻塞错误后进入命名模板。"
+        },
+        rename: {
+          label: "Step 3",
+          title: "命名规则",
+          description: "模板对整个项目生效，目录标题可以按照片目录覆盖。同一目录内所有照片必须遵守同一规范。",
+          status: "Ready for rename",
+          action: "Generate plan",
+          journeyTitle: "命名规则确认",
+          body: "用户通过占位符选择模板，按目录检查 title。系统实时展示样例，但真正写入前必须先生成 dry-run。",
+          userAction: "用户确认模板",
+          systemResponse: "系统生成 dry-run",
+          nextAction: "Generate rename plan",
+          nextHint: "模板确认后进入 dry-run，不会修改任何文件。"
+        },
+        execute: {
+          label: "Step 4",
+          title: "执行重命名",
+          description: "用户查看 dry-run 计划、sidecar 映射和冲突列表。确认后才会写入 .metadata.json 并修改文件名。",
+          status: "Dry-run plan ready",
+          action: "Confirm execute",
+          journeyTitle: "确认写入磁盘",
+          body: "这一阶段必须让用户明确看到会改哪些文件。执行完成后展示成功、失败和可回滚映射。",
+          userAction: "用户二次确认",
+          systemResponse: "系统写入结果",
+          nextAction: "Open Lightroom checkpoint",
+          nextHint: "重命名完成后再导入 Lightroom。"
+        },
+        postprocess: {
+          label: "Step 5",
+          title: "Lightroom 后期",
+          description: "这是工作流 checkpoint，不替代 Lightroom。用户完成导入、筛选、评级和修图后回到 App 继续归档。",
+          status: "Waiting for Lightroom",
+          action: "Mark edited",
+          journeyTitle: "后期软件检查点",
+          body: "App 不读取 Lightroom catalog，也不自动修图。它只提醒用户当前目录已经完成重命名，可以安全进入后期。",
+          userAction: "用户完成修图",
+          systemResponse: "系统进入归档",
+          nextAction: "Prepare archive",
+          nextHint: "后期完成后生成推荐压缩包名称。"
+        },
+        archive: {
+          label: "Step 6",
+          title: "归档",
+          description: "用户可以复制推荐压缩包名手动压缩，也可以执行 ZIP 归档计划。归档会打包整个目录并遵守 exclude 规则。",
+          status: "Ready to archive",
+          action: "Copy archive name",
+          journeyTitle: "归档并保留可追踪性",
+          body: "系统推荐带时间戳的压缩包名称。用户可以手动使用 Keka 等工具，也可以走 App 内 ZIP 计划。",
+          userAction: "用户选择归档方式",
+          systemResponse: "系统给出归档名",
+          nextAction: "Archive complete",
+          nextHint: "归档完成后项目进入只读保存状态。"
+        }
+      };
+
+      function setActiveView(id) {
+        viewLinks.forEach((link) => {
+          link.classList.toggle("is-active", link.dataset.viewLink === id);
+        });
+      }
+
+      function setText(id, value) {
+        const element = document.getElementById(id);
+        if (element) {
+          element.textContent = value;
+        }
+      }
+
+      function setJourneyStep(id) {
+        const content = journeyContent[id];
+        if (!content) {
+          return;
+        }
+
+        activeJourneyStep = id;
+        const activeIndex = journeyOrder.indexOf(id);
+        const nextIndex = Math.min(activeIndex + 1, journeyOrder.length - 1);
+        const nextContent = journeyContent[journeyOrder[nextIndex]];
+
+        journeyTriggers.forEach((trigger) => {
+          const triggerIndex = journeyOrder.indexOf(trigger.dataset.journeyStep);
+          const isActive = trigger.dataset.journeyStep === id;
+          trigger.classList.toggle("active", isActive);
+          trigger.classList.toggle("done", triggerIndex >= 0 && triggerIndex < activeIndex);
+          trigger.setAttribute("aria-current", isActive ? "step" : "false");
+        });
+
+        setText("desktopStepLabel", content.label);
+        setText("desktopStepTitle", content.title);
+        setText("desktopStepDescription", content.description);
+        setText("desktopWorkflowStatus", content.status);
+        setText("desktopPrimaryAction", content.action);
+        setText("journeyTitle", content.journeyTitle);
+        setText("journeyBody", content.body);
+        setText("journeyUserAction", content.userAction);
+        setText("journeySystemResponse", content.systemResponse);
+        setText("desktopNextAction", content.nextAction);
+        setText("desktopNextHint", content.nextHint);
+        setText("ipadStepLabel", content.label);
+        setText("ipadStepTitle", content.title);
+        setText("ipadStepDescription", content.description);
+        setText("ipadPrimaryAction", content.action);
+        setText("ipadJourneyTitle", content.journeyTitle);
+        setText("ipadJourneyBody", content.body);
+        setText("ipadJourneyUserAction", content.userAction);
+        setText("ipadJourneySystemResponse", content.systemResponse);
+        setText("ipadNextAction", content.nextAction);
+        setText("ipadNextHint", content.nextHint);
+        setText("phoneStepCount", `${activeIndex + 1} / ${journeyOrder.length}`);
+        setText("phoneStepTitle", content.title);
+        setText("phoneCurrentStageTitle", content.title);
+        setText("phoneCurrentStageHint", `${content.label} / ${journeyOrder.length} · ${content.userAction}`);
+        setText("phoneStepDescription", content.description);
+        setText("phoneJourneyTitle", content.journeyTitle);
+        setText("phoneJourneyBody", content.body);
+        setText(
+          "phonePrimaryAction",
+          activeIndex === journeyOrder.length - 1 ? "完成归档" : `继续：${nextContent.title}`,
+        );
+
+        phoneProgressDots.forEach((dot, index) => {
+          dot.classList.toggle("done", index < activeIndex);
+          dot.classList.toggle("active", index === activeIndex);
+        });
+      }
+
+      function setTheme(theme) {
+        document.documentElement.dataset.theme = theme;
+        localStorage.setItem("photograph-workflow-theme", theme);
+        themeCards.forEach((card) => {
+          const selected = card.dataset.themeOption === theme;
+          card.classList.toggle("is-selected", selected);
+          card.setAttribute("aria-pressed", String(selected));
+        });
+      }
+
+      setTheme(savedTheme);
+
+      themeCards.forEach((card) => {
+        card.addEventListener("click", () => {
+          setTheme(card.dataset.themeOption);
+        });
+      });
+
+      journeyTriggers.forEach((trigger) => {
+        const activate = () => setJourneyStep(trigger.dataset.journeyStep);
+        trigger.addEventListener("click", activate);
+        trigger.addEventListener("keydown", (event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            activate();
+          }
+        });
+      });
+
+      journeyActions.forEach((action) => {
+        action.addEventListener("click", () => {
+          const currentIndex = journeyOrder.indexOf(activeJourneyStep);
+          const nextStep = journeyOrder[Math.min(currentIndex + 1, journeyOrder.length - 1)];
+          setJourneyStep(nextStep);
+        });
+      });
+
+      setJourneyStep(activeJourneyStep);
+
+      viewLinks.forEach((link) => {
+        link.addEventListener("click", (event) => {
+          event.preventDefault();
+          const targetId = link.dataset.viewLink;
+          const target = document.getElementById(targetId);
+          if (!target) {
+            return;
+          }
+          setActiveView(targetId);
+          history.replaceState(null, "", `#${targetId}`);
+          target.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      });
+
+      const viewObserver = new IntersectionObserver(
+        (entries) => {
+          const visible = entries
+            .filter((entry) => entry.isIntersecting)
+            .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+          if (visible) {
+            setActiveView(visible.target.id);
+          }
+        },
+        { rootMargin: "-20% 0px -45% 0px", threshold: [0.18, 0.35, 0.6] },
+      );
+
+      viewSections.forEach((section) => {
+        viewObserver.observe(section);
+      });
+    </script>
+  </body>
+</html>

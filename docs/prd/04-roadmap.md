@@ -25,7 +25,7 @@
 
 ## 推荐执行形态
 
-当前版本以 uv 管理的 Python 脚本为核心入口，并提供本地 Web UI。不要求安装成系统命令，只要能用 `uv run ...` 直接执行即可。
+当前版本以 uv 管理的 Python 脚本为核心入口，并提供本地 Web UI 作为开发调试和未来桌面包装基础。不要求安装成系统命令，只要能用 `uv run ...` 直接执行即可。
 
 示例：
 
@@ -43,17 +43,17 @@ uv run python scripts/archive.py ./Photograph-Raw/Travel/Shanghai --output /Volu
 
 ## 多端扩展约束
 
-当前版本已提供本地 Web UI，但不实现桌面包装 App、macOS 原生 App 或 iOS App。所有产品和技术设计必须继续保留多端扩展空间。
+当前版本已提供本地 Web UI，但它不是面向用户的浏览器产品版本。当前版本不实现桌面包装 App、macOS 原生 App、iPad App 或 iPhone App。所有产品和技术设计必须继续保留多端扩展空间。
 
 约束：
 
-- 核心能力不能只服务命令行交互，必须能被未来 GUI、Web API 或移动端操作流复用。
+- 核心能力不能只服务命令行交互，必须能被未来本地 API、桌面 App 和移动端操作流复用。
 - `.metadata.json`、批量输入 JSON 和 dry-run 计划输出必须保持结构化，不能依赖只适合终端阅读的文本。
 - 文件扫描、命名模板、元数据读取、冲突检测、两阶段 metadata 写入和归档命名应作为平台无关的核心规则。
 - 脚本只负责参数解析、用户确认和摘要展示，不承载不可复用的业务逻辑。
 - 后续多端应用可以复用同一套核心模块，并按平台替换文件选择、权限授权、进度展示和错误呈现方式。
 
-多端应用的推荐演进顺序是：继续稳定 Python 脚本、核心逻辑和本地 Web UI，然后用桌面包装 App 解决目录授权与打包，再评估原生 macOS App，最后在数据契约稳定后建设 SwiftUI 原生 iOS App。详细路线见 [多端应用规划](./07-multi-platform-plan.md)。
+多端应用的推荐演进顺序是：继续稳定 Python 脚本、核心逻辑和本地 Web UI，然后用桌面包装 App 解决目录授权与打包，再评估原生 macOS App，最后在数据契约稳定后建设 SwiftUI 原生 iPad App 和 iPhone App。详细路线见 [多端应用规划](./07-multi-platform-plan.md)。
 
 ## 配置文件
 
@@ -170,7 +170,9 @@ Python 标准库应覆盖大部分当前版本能力，结构化校验使用 Pyd
 当前版本不包含：
 
 - macOS 原生 App。
-- iOS App。
+- 桌面包装 App。
+- iPad App。
+- iPhone App。
 - 自动分类。
 - Lightroom catalog 读取。
 - Capture One 等其他后期软件适配。

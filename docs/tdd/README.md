@@ -4,9 +4,9 @@
 
 TDD 记录当前版本的技术设计契约。PRD 只描述产品边界和用户可见行为；字段、模块、流程和数据结构细节在 TDD 中维护。
 
-当前版本交付 uv 管理的 Python 核心和脚本入口，并提供本地 Web UI。核心逻辑必须独立于终端交互和具体 UI，便于未来复用到 macOS 端和 iOS 端应用。
+当前版本交付 uv 管理的 Python 核心和脚本入口，并提供本地 Web UI 作为开发调试和未来桌面包装基础。核心逻辑必须独立于终端交互和具体 UI，便于未来复用到桌面端、iPad 端和 iPhone 端应用。
 
-技术设计必须为未来迭代留出空间。当前版本交付本地 Python 脚本和本地 Web UI，但扫描、命名、校验、metadata、归档和计划生成规则不能和脚本入口、终端交互、Lightroom 或本机文件系统实现强绑定。
+技术设计必须为未来迭代留出空间。当前版本交付本地 Python 脚本和本地 Web UI，但 Web UI 不是面向用户的浏览器产品版本。扫描、命名、校验、metadata、归档和计划生成规则不能和脚本入口、终端交互、Lightroom 或本机文件系统实现强绑定。
 
 ## 当前范围
 
@@ -24,7 +24,7 @@ TDD 记录当前版本的技术设计契约。PRD 只描述产品边界和用户
 
 当前版本不实现：
 
-- 桌面包装 App、macOS 原生 App 或 iOS App。
+- 桌面包装 App、macOS 原生 App、iPad App 或 iPhone App。
 - Lightroom catalog 读取或写入。
 - Capture One 等其他后期软件适配。
 - Lightroom 导出成片管理。
@@ -41,5 +41,5 @@ TDD 记录当前版本的技术设计契约。PRD 只描述产品边界和用户
 | [05-archive.md](./05-archive.md) | ZIP 归档、手动压缩命名辅助、exclude 规则 |
 | [06-testing.md](./06-testing.md) | mock 后端、测试策略、实现顺序 |
 | [07-extensibility.md](./07-extensibility.md) | 多端应用、多后期软件和长期演进边界 |
-| [08-multi-platform-architecture.md](./08-multi-platform-architecture.md) | 脚本、Web UI、macOS App 和 iOS App 的长期技术路线 |
+| [08-multi-platform-architecture.md](./08-multi-platform-architecture.md) | 脚本、本地 Web UI、桌面/macOS App、iPad/iPhone App 的长期技术路线 |
 | [09-macos-desktop-app-architecture.md](./09-macos-desktop-app-architecture.md) | macOS 原生 App 与 Tauri / Electron 桌面包装 App 技术设计 |

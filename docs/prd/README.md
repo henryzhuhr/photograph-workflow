@@ -24,13 +24,15 @@
 - [多端应用规划](./07-multi-platform-plan.md)
 - [macOS 与桌面包装 App 设计](./08-macos-desktop-app-design.md)
 
+界面与交互原型见 [UX Prototype](../ux/README.md)。
+
 ## 产品目标
 
 本项目要解决的是摄影后期前后的“文件管理可靠性”问题，而不是替代 Lightroom 的修图能力。
 
-实现形态以 uv 管理的 Python 核心和脚本入口为基础，并提供本地 Web UI 作为可视化入口。当前版本不要求安装成系统 CLI，用户可以直接执行 `.py` 脚本，也可以通过本地 Web UI 操作核心工作流。
+实现形态以 uv 管理的 Python 核心和脚本入口为基础。本地 Web UI 可以作为开发调试入口和未来桌面包装 App 的前端基础，但不作为面向用户的浏览器产品版本。当前版本不要求安装成系统 CLI，用户可以直接执行 `.py` 脚本，也可以通过本地可视化入口操作核心工作流。
 
-长期方向上，这套工作流可能扩展为 macOS 原生 App、桌面包装 App 和 iOS App，也可能扩展到 Capture One 等其他后期软件。当前版本不实现桌面包装 App、macOS 原生 App 或 iOS App，也不支持 Lightroom 之外的后期软件；但产品设计、数据契约和核心逻辑边界必须避免和单一脚本入口强绑定，保证后续可以复用同一套扫描、命名、校验和归档规则。多端应用的产品路线见 [多端应用规划](./07-multi-platform-plan.md)，macOS 与桌面包装设计见 [macOS 与桌面包装 App 设计](./08-macos-desktop-app-design.md)。
+长期方向上，这套工作流可能扩展为桌面包装 App、macOS 原生 App、iPad App 和 iPhone App，也可能扩展到 Capture One 等其他后期软件。当前版本不实现桌面包装 App、macOS 原生 App、iPad App 或 iPhone App，也不支持 Lightroom 之外的后期软件；但产品设计、数据契约和核心逻辑边界必须避免和单一脚本入口强绑定，保证后续可以复用同一套扫描、命名、校验和归档规则。多端应用的产品路线见 [多端应用规划](./07-multi-platform-plan.md)，macOS 与桌面包装设计见 [macOS 与桌面包装 App 设计](./08-macos-desktop-app-design.md)。
 
 核心目标：
 
@@ -38,7 +40,7 @@
 - 保证 RAW/DNG、sidecar、归档包之间的命名和目录关系清晰可追踪。
 - 在真正修改文件前提供预览、冲突检查和回滚依据。
 - 支持按个人习惯自定义命名格式，而不是强制固定模板。
-- 保持核心工作流可被脚本、桌面应用、Web 应用和移动应用复用。
+- 保持核心工作流可被脚本、桌面应用和未来移动应用复用。
 
 ## 目标用户
 
@@ -54,7 +56,7 @@
 - 不直接修改 RAW 图像内容。
 - 不默认上传云端或做多人协作。
 - 不强制用户采用单一目录结构。
-- 当前版本不提供桌面包装 App、macOS 原生 App 或 iOS App。
+- 当前版本不提供桌面包装 App、macOS 原生 App、iPad App 或 iPhone App。
 
 ## 建议的信息架构
 

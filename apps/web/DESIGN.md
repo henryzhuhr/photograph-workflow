@@ -1,5 +1,7 @@
 # Web UI Design
 
+> 最新 App UX 原型见 `docs/ux/prototype/index.html`，覆盖桌面端、iPad 端和 iPhone 端。本文件记录当前 Web UI 的既有实现规格；目标用户体验不再按浏览器产品版本设计，后续桌面包装、macOS 原生或移动端实现应以可视化原型为准。
+
 ## Overall Layout
 
 ```

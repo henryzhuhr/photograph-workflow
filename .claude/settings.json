@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(uvx ruff *)",
+      "Bash(brew list *)",
+      "Bash(npx tauri *)",
+      "Bash(cargo clean *)"
+    ]
+  }
+}

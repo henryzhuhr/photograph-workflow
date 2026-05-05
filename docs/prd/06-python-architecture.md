@@ -2,20 +2,20 @@
 
 ## 定位
 
-当前版本使用 Python 实现，并用 uv 管理项目环境。交付形态以可直接执行的 `.py` 脚本和本地 Web UI 为主，不要求安装成系统 CLI。
+当前版本使用 Python 实现，并用 uv 管理项目环境。交付形态以可直接执行的 `.py` 脚本为主，本地 Web UI 作为开发调试和未来桌面包装基础，不要求安装成系统 CLI。
 
 这份 PRD 文档只描述产品层面的技术边界。具体模块、接口、数据模型和执行流程以 [TDD 文档](../tdd/README.md) 为准。
 
 ## 长期扩展原则
 
-长期方向上，这套工作流可能扩展为桌面包装 App、macOS 原生 App 和 iOS App，也可能扩展到 Capture One 等其他后期软件。当前版本不实现桌面包装 App、macOS 原生 App 或 iOS App，也不支持 Lightroom 之外的后期软件；但产品设计、数据契约和核心逻辑边界必须避免和单一脚本入口强绑定，保证后续可以复用同一套扫描、命名、校验和归档规则。
+长期方向上，这套工作流可能扩展为桌面包装 App、macOS 原生 App、iPad App 和 iPhone App，也可能扩展到 Capture One 等其他后期软件。当前版本不实现桌面包装 App、macOS 原生 App、iPad App 或 iPhone App，也不支持 Lightroom 之外的后期软件；但产品设计、数据契约和核心逻辑边界必须避免和单一脚本入口强绑定，保证后续可以复用同一套扫描、命名、校验和归档规则。
 
 因此当前 Python 实现必须满足：
 
 - 脚本入口只做参数解析、用户确认、摘要展示和调用业务模块。
 - 扫描、命名、校验、回滚和归档规则必须放在可复用核心模块。
 - dry-run 计划、错误列表、metadata 更新计划和归档计划都必须是结构化数据。
-- 终端文本输出只是展示层，不能成为 Web/macOS/iOS 未来集成的解析依据。
+- 终端文本输出只是展示层，不能成为本地 Web UI、桌面 App、iPad App 或 iPhone App 未来集成的解析依据。
 - 文件系统访问、ExifTool 调用、归档写入、用户确认和后期软件策略必须有可替换边界。
 - `.metadata.json` 是跨端共享的数据契约，字段命名、状态流转和版本兼容策略必须稳定。
 - 用户选择过的工作目录保存为 workspace 数据，便于脚本和未来 App 自动加载。
@@ -51,7 +51,7 @@ uv run python scripts/archive.py <project-dir> --dry-run
 - 当前版本不要求 `pip install -e .` 后生成系统命令。
 - 脚本可以直接执行，便于用户按本地工作流调用。
 - 公共逻辑仍放在 `src/photograph_workflow/`，避免脚本之间复制代码。
-- 未来如果增加桌面包装、macOS 原生或 iOS 入口，应复用 application/domain/models 层或共享契约，而不是重新实现命名规则。
+- 未来如果增加桌面包装、macOS 原生、iPad 或 iPhone 入口，应复用 application/domain/models 层或共享契约，而不是重新实现命名规则。
 
 ## 当前版本技术边界
 
@@ -69,7 +69,8 @@ uv run python scripts/archive.py <project-dir> --dry-run
 
 - macOS 原生 App。
 - 桌面包装 App。
-- 移动端界面。
+- iPad App。
+- iPhone App。
 - Capture One profile。
 - Lightroom catalog 读写。
 - 导出成片管理。

@@ -2,9 +2,9 @@
 
 ## 目标
 
-本文件描述脚本、Web UI、macOS App 和 iOS App 共存时的技术路线。它不改变当前版本范围；当前权威业务实现仍是 uv 管理的 Python 核心和脚本入口，本地 Web UI 作为可视化入口复用这些能力。
+本文件描述脚本、本地 Web UI、桌面/macOS App、iPad App 和 iPhone App 共存时的技术路线。它不改变当前版本范围；当前权威业务实现仍是 uv 管理的 Python 核心和脚本入口，本地 Web UI 作为开发调试和未来桌面包装基础复用这些能力，不作为面向用户的浏览器产品版本。
 
-长期目标是让不同入口共享同一套规则和数据契约，避免形成互相不一致的脚本版、Web 版和移动版。
+长期目标是让不同入口共享同一套规则和数据契约，避免形成互相不一致的脚本版、桌面版、iPad 版和 iPhone 版。
 
 ## 推荐阶段
 
@@ -21,13 +21,13 @@
 
 ### 2. 本地 Web UI
 
-Web UI 是第一个推荐实现且当前已具备本地版本的图形界面。
+本地 Web UI 是当前已具备的图形界面基础，主要用于开发调试、验证结构化计划展示，并作为 Tauri / Electron 桌面包装 App 的前端基础。
 
 推荐技术边界：
 
 - Python 后端复用现有 `application` 层。
 - Web API 返回现有 Pydantic 计划对象或等价 JSON。
-- 前端只负责目录选择、计划展示、确认、进度和错误呈现。
+- 前端只负责计划展示、确认、进度和错误呈现；完整系统目录选择应由桌面壳或原生 App 提供。
 - Web UI 不解析脚本输出，不复制命名模板、sidecar 匹配或冲突检测规则。
 
 可选目录结构：
@@ -56,13 +56,13 @@ macOS 原生 SwiftUI 可以作为后续选项，但不应在核心规则尚未�
 
 macOS 原生 App 与 Tauri / Electron 桌面包装 App 的详细技术设计见 [09-macos-desktop-app-architecture.md](./09-macos-desktop-app-architecture.md)。
 
-### 4. iOS SwiftUI App
+### 4. iPad / iPhone SwiftUI App
 
-iOS App 应作为长期独立入口规划。
+iPad App 和 iPhone App 应作为长期独立入口规划。
 
 推荐策略：
 
-- UI 使用 SwiftUI。
+- UI 使用 SwiftUI，并分别适配 iPad 双栏工作台和 iPhone 单列向导。
 - 核心规则可以通过 Swift Package 逐步重写。
 - 行为一致性依赖共享契约、fixture 和跨语言测试，而不是依赖 Python 运行时。
 
@@ -76,16 +76,16 @@ packages/swift-workflow-core
 └── Sources
 ```
 
-iOS 侧需要替换的 adapter：
+iPad / iPhone 侧需要替换的 adapter：
 
-| 能力 | iOS 方向 |
+| 能力 | iPad / iPhone 方向 |
 | --- | --- |
 | 文件访问 | Files App、document picker、security scoped resource |
-| 元数据读取 | iOS 可用的 metadata API 或专门的 RAW metadata reader |
+| 元数据读取 | iPadOS/iOS 可用的 metadata API 或专门的 RAW metadata reader |
 | 用户确认 | SwiftUI confirmation dialog |
-| 计划展示 | SwiftUI list/table/detail |
+| 计划展示 | iPad list/table/detail；iPhone step-by-step preview |
 | 长任务 | async task、进度、取消 |
-| workspace | iOS 可访问目录授权记录 |
+| workspace | iPadOS/iOS 可访问目录授权记录 |
 
 ## 共享契约
 
@@ -105,7 +105,7 @@ contracts
     └── archive-plan-basic.json
 ```
 
-当前阶段可以先不生成这些文件，但后续实现桌面包装 App、macOS 原生 App 或 SwiftUI iOS App 前应补齐。
+当前阶段可以先不生成这些文件，但后续实现桌面包装 App、macOS 原生 App、iPad App 或 iPhone App 前应补齐。
 
 共享契约必须覆盖：
 
@@ -118,7 +118,7 @@ contracts
 
 ## API 边界
 
-Web UI 或 macOS 包装需要 API 时，API 应以 application 用例为边界。
+本地 Web UI 或 macOS 包装需要 API 时，API 应以 application 用例为边界。
 
 推荐 API 形态：
 
@@ -141,9 +141,9 @@ API 不应暴露内部 adapter 细节。路径、错误和计划都通过结构�
 多端实现后，测试应分层：
 
 - Python core：继续用 pytest 覆盖 domain、application 和 adapter 行为。
-- Web UI：用 API 测试验证结构化响应，用浏览器测试覆盖关键交互。
+- 本地 Web UI：用 API 测试验证结构化响应，用浏览器测试覆盖开发用前端的关键交互。
 - macOS App：覆盖目录选择、权限授权和执行确认。
-- iOS App：覆盖 Swift core 的命名模板、sidecar 匹配、metadata 读取失败处理和计划展示。
+- iPad / iPhone App：覆盖 Swift core 的命名模板、sidecar 匹配、metadata 读取失败处理和计划展示。
 - contracts：用共享 JSON fixture 验证 Python 与 Swift 对同一输入产生一致结果。
 
 真实 RAW/DNG 仍只用于 smoke test，不提交到仓库。
@@ -152,21 +152,21 @@ API 不应暴露内部 adapter 细节。路径、错误和计划都通过结构�
 
 ### 多套业务规则分叉
 
-如果 Web UI 或 iOS App 复制 Python 逻辑，很容易出现同一目录在不同入口生成不同文件名。
+如果本地 Web UI、桌面 App、iPad App 或 iPhone App 复制 Python 逻辑，很容易出现同一目录在不同入口生成不同文件名。
 
 决策：
 
-- Web UI 优先调用 Python application 层。
-- iOS 如需重写核心规则，必须基于共享契约和 fixture 验证一致性。
+- 本地 Web UI 和桌面包装 App 优先调用 Python application 层。
+- iPad / iPhone 如需重写核心规则，必须基于共享契约和 fixture 验证一致性。
 
-### iOS 文件权限差异
+### iPad / iPhone 文件权限差异
 
-iOS 不能按桌面脚本假设任意读写用户目录。
+iPad / iPhone 不能按桌面脚本假设任意读写用户目录。
 
 决策：
 
-- iOS App 作为长期独立入口规划。
-- iOS adapter 必须显式处理目录授权、可访问范围和长期访问记录。
+- iPad App 和 iPhone App 作为长期独立入口规划。
+- iPad / iPhone adapter 必须显式处理目录授权、可访问范围和长期访问记录。
 - 不把桌面绝对路径作为跨端唯一身份。
 
 ### macOS 打包复杂度
@@ -188,6 +188,6 @@ macOS App 会引入签名、公证、权限和沙盒问题。
 - `contracts` 目录。
 - Swift Package。
 - macOS 打包。
-- iOS 文件访问。
+- iPad / iPhone 文件访问。
 
 这些内容只有在进入对应实现计划时再创建。

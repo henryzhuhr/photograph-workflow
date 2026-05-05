@@ -22,7 +22,7 @@
 - 在桌面窗口中完成扫描、重命名预览、执行确认、回滚和归档。
 - 支持打开 Finder、复制推荐压缩包名、查看 `.metadata.json` 相关状态。
 - 保持与 Python 脚本、本地 Web UI 完全一致的命名和校验规则。
-- 为未来原生 iOS App 和 Swift 侧核心逻辑复用保留空间。
+- 为未来 iPad App、iPhone App 和 Swift 侧核心逻辑复用保留空间。
 
 ## 路线一：macOS 原生 App
 
@@ -82,7 +82,7 @@ Tauri 桌面包装 App，解决目录选择和桌面打包
         ↓
 SwiftUI 原生 macOS App，逐步承接更原生的桌面体验
         ↓
-Swift Package / iOS App 复用稳定规则
+Swift Package / iPad App / iPhone App 复用稳定规则
 ```
 
 这样可以先解决当前最大体验问题：浏览器无法自然选择本机目录。同时避免在核心规则还在演进时，把同一套重命名规则重复实现成 Python、JavaScript 和 Swift 三份。
@@ -124,7 +124,7 @@ Swift Package / iOS App 复用稳定规则
 
 ## 跨入口一致性
 
-无论入口是 Python 脚本、本地 Web UI、桌面包装 App 还是原生 macOS App，都必须保持：
+无论入口是 Python 脚本、本地 Web UI、桌面包装 App、原生 macOS App、iPad App 还是 iPhone App，都必须保持：
 
 - `{date}` 只来自照片元数据，读取失败必须报错。
 - 默认模板为 `{date:YYYYMMDD}-{title}-{date:HHMMSS}_{original}`。
@@ -140,7 +140,8 @@ Swift Package / iOS App 复用稳定规则
 - 不实现 macOS App 代码。
 - 不实现 Tauri / Electron 包装代码。
 - 不迁移 Python 核心逻辑到 Swift。
-- 不实现 iOS App。
+- 不实现 iPad App。
+- 不实现 iPhone App。
 - 不接入 Capture One。
 - 不改变现有脚本和 Web UI 的业务规则。
 
@@ -148,4 +149,4 @@ Swift Package / iOS App 复用稳定规则
 
 如果目标是尽快解决“选择本地目录不自然”的问题，优先做 Tauri 桌面包装 App。
 
-如果目标是长期最好的 macOS 和 iOS 生态体验，保留 SwiftUI 原生 App 方向，但应等数据契约、核心规则和真实目录测试更稳定后再开始实现。
+如果目标是长期最好的 macOS、iPadOS 和 iOS 生态体验，保留 SwiftUI 原生 App 方向，但应等数据契约、核心规则和真实目录测试更稳定后再开始实现。

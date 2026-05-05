@@ -133,7 +133,7 @@ App 内部不应把绝对路径作为唯一身份。路径可以用于展示，�
 | 路线 | 说明 | 约束 |
 | --- | --- | --- |
 | 调用本地 Python 能力 | SwiftUI 负责 UI 和权限，业务规则仍由 Python application 层执行 | 适合早期，能最大化复用现有实现 |
-| Swift Workflow Core | 用 Swift Package 重写稳定规则，macOS 和 iOS 共用 | 必须通过 contracts 和 fixture 保持行为一致 |
+| Swift Workflow Core | 用 Swift Package 重写稳定规则，macOS、iPad 和 iPhone 共用 | 必须通过 contracts 和 fixture 保持行为一致 |
 
 早期不建议直接在 SwiftUI 层重写重命名规则。SwiftUI 层应调用结构化用例，并展示计划对象。
 
@@ -206,7 +206,7 @@ contracts
 
 packages
 └── swift-workflow-core
-    └── 未来 macOS / iOS 共享核心
+    └── 未来 macOS / iPad / iPhone 共享核心
 ```
 
 当前设计阶段不创建这些新目录。
