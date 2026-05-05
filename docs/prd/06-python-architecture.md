@@ -2,13 +2,13 @@
 
 ## 定位
 
-当前版本使用 Python 实现，并用 uv 管理项目环境。交付形态是可直接执行的 `.py` 脚本，不要求安装成系统 CLI。
+当前版本使用 Python 实现，并用 uv 管理项目环境。交付形态以可直接执行的 `.py` 脚本和本地 Web UI 为主，不要求安装成系统 CLI。
 
 这份 PRD 文档只描述产品层面的技术边界。具体模块、接口、数据模型和执行流程以 [TDD 文档](../tdd/README.md) 为准。
 
 ## 长期扩展原则
 
-长期方向上，这套工作流可能扩展为电脑 Web 端、macOS 端和 iOS 端应用，也可能扩展到 Capture One 等其他后期软件。当前版本不实现这些应用形态，也不支持 Lightroom 之外的后期软件；但产品设计、数据契约和核心逻辑边界必须避免和单一脚本入口强绑定，保证后续可以复用同一套扫描、命名、校验和归档规则。
+长期方向上，这套工作流可能扩展为桌面包装 App、macOS 原生 App 和 iOS App，也可能扩展到 Capture One 等其他后期软件。当前版本不实现桌面包装 App、macOS 原生 App 或 iOS App，也不支持 Lightroom 之外的后期软件；但产品设计、数据契约和核心逻辑边界必须避免和单一脚本入口强绑定，保证后续可以复用同一套扫描、命名、校验和归档规则。
 
 因此当前 Python 实现必须满足：
 
@@ -51,7 +51,7 @@ uv run python scripts/archive.py <project-dir> --dry-run
 - 当前版本不要求 `pip install -e .` 后生成系统命令。
 - 脚本可以直接执行，便于用户按本地工作流调用。
 - 公共逻辑仍放在 `src/photograph_workflow/`，避免脚本之间复制代码。
-- 未来如果增加 Web、macOS 或 iOS 入口，应复用 application/domain/models 层，而不是重新实现命名规则。
+- 未来如果增加桌面包装、macOS 原生或 iOS 入口，应复用 application/domain/models 层或共享契约，而不是重新实现命名规则。
 
 ## 当前版本技术边界
 
@@ -67,8 +67,8 @@ uv run python scripts/archive.py <project-dir> --dry-run
 
 当前版本不实现：
 
-- Web 服务。
-- 桌面窗口。
+- macOS 原生 App。
+- 桌面包装 App。
 - 移动端界面。
 - Capture One profile。
 - Lightroom catalog 读写。

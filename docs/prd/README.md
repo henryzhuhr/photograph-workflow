@@ -22,14 +22,15 @@
 - [标准目录样例与命名策略](./05-standard-directory.md)
 - [Python 技术架构设计](./06-python-architecture.md)
 - [多端应用规划](./07-multi-platform-plan.md)
+- [macOS 与桌面包装 App 设计](./08-macos-desktop-app-design.md)
 
 ## 产品目标
 
 本项目要解决的是摄影后期前后的“文件管理可靠性”问题，而不是替代 Lightroom 的修图能力。
 
-实现形态明确为 uv 管理的 Python 脚本项目，优先服务本地文件扫描、重命名预览、重命名执行和归档。当前版本不要求安装成系统 CLI，用户可以直接执行 `.py` 脚本。
+实现形态以 uv 管理的 Python 核心和脚本入口为基础，并提供本地 Web UI 作为可视化入口。当前版本不要求安装成系统 CLI，用户可以直接执行 `.py` 脚本，也可以通过本地 Web UI 操作核心工作流。
 
-长期方向上，这套工作流可能扩展为电脑 Web 端、macOS 端和 iOS 端应用，也可能扩展到 Capture One 等其他后期软件。当前版本不实现这些应用形态，也不支持 Lightroom 之外的后期软件；但产品设计、数据契约和核心逻辑边界必须避免和单一脚本入口强绑定，保证后续可以复用同一套扫描、命名、校验和归档规则。多端应用的产品路线见 [多端应用规划](./07-multi-platform-plan.md)。
+长期方向上，这套工作流可能扩展为 macOS 原生 App、桌面包装 App 和 iOS App，也可能扩展到 Capture One 等其他后期软件。当前版本不实现桌面包装 App、macOS 原生 App 或 iOS App，也不支持 Lightroom 之外的后期软件；但产品设计、数据契约和核心逻辑边界必须避免和单一脚本入口强绑定，保证后续可以复用同一套扫描、命名、校验和归档规则。多端应用的产品路线见 [多端应用规划](./07-multi-platform-plan.md)，macOS 与桌面包装设计见 [macOS 与桌面包装 App 设计](./08-macos-desktop-app-design.md)。
 
 核心目标：
 
@@ -53,7 +54,7 @@
 - 不直接修改 RAW 图像内容。
 - 不默认上传云端或做多人协作。
 - 不强制用户采用单一目录结构。
-- 当前版本不提供电脑 Web 端、macOS 端或 iOS 端应用界面。
+- 当前版本不提供桌面包装 App、macOS 原生 App 或 iOS App。
 
 ## 建议的信息架构
 

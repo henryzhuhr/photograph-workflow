@@ -25,7 +25,7 @@
 
 ## 推荐执行形态
 
-当前版本使用 uv 管理的 Python 脚本，不要求安装成系统命令，只要能用 `uv run ...` 直接执行即可。
+当前版本以 uv 管理的 Python 脚本为核心入口，并提供本地 Web UI。不要求安装成系统命令，只要能用 `uv run ...` 直接执行即可。
 
 示例：
 
@@ -43,7 +43,7 @@ uv run python scripts/archive.py ./Photograph-Raw/Travel/Shanghai --output /Volu
 
 ## 多端扩展约束
 
-当前版本不实现电脑 Web 端、macOS 端或 iOS 端应用，但所有产品和技术设计必须保留多端扩展空间。
+当前版本已提供本地 Web UI，但不实现桌面包装 App、macOS 原生 App 或 iOS App。所有产品和技术设计必须继续保留多端扩展空间。
 
 约束：
 
@@ -53,7 +53,7 @@ uv run python scripts/archive.py ./Photograph-Raw/Travel/Shanghai --output /Volu
 - 脚本只负责参数解析、用户确认和摘要展示，不承载不可复用的业务逻辑。
 - 后续多端应用可以复用同一套核心模块，并按平台替换文件选择、权限授权、进度展示和错误呈现方式。
 
-多端应用的推荐演进顺序是：先继续稳定 Python 脚本和核心逻辑，再建设本地 Web UI，然后包装或实现 macOS App，最后在数据契约稳定后建设 SwiftUI 原生 iOS App。详细路线见 [多端应用规划](./07-multi-platform-plan.md)。
+多端应用的推荐演进顺序是：继续稳定 Python 脚本、核心逻辑和本地 Web UI，然后用桌面包装 App 解决目录授权与打包，再评估原生 macOS App，最后在数据契约稳定后建设 SwiftUI 原生 iOS App。详细路线见 [多端应用规划](./07-multi-platform-plan.md)。
 
 ## 配置文件
 
@@ -169,7 +169,8 @@ Python 标准库应覆盖大部分当前版本能力，结构化校验使用 Pyd
 
 当前版本不包含：
 
-- 图形界面。
+- macOS 原生 App。
+- iOS App。
 - 自动分类。
 - Lightroom catalog 读取。
 - Capture One 等其他后期软件适配。
@@ -177,4 +178,3 @@ Python 标准库应覆盖大部分当前版本能力，结构化校验使用 Pyd
 - 图片内容识别。
 - 自动修图。
 - Lightroom 导出成片管理。
-- 电脑 Web 端、macOS 端和 iOS 端应用界面。

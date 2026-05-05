@@ -2,7 +2,7 @@
 
 ## 目标
 
-本文件描述脚本、Web UI、macOS App 和 iOS App 共存时的技术路线。它不改变当前版本范围；当前版本仍交付 uv 管理的 Python 脚本。
+本文件描述脚本、Web UI、macOS App 和 iOS App 共存时的技术路线。它不改变当前版本范围；当前权威业务实现仍是 uv 管理的 Python 核心和脚本入口，本地 Web UI 作为可视化入口复用这些能力。
 
 长期目标是让不同入口共享同一套规则和数据契约，避免形成互相不一致的脚本版、Web 版和移动版。
 
@@ -21,7 +21,7 @@
 
 ### 2. 本地 Web UI
 
-Web UI 是第一个推荐实现的图形界面。
+Web UI 是第一个推荐实现且当前已具备本地版本的图形界面。
 
 推荐技术边界：
 
@@ -42,17 +42,19 @@ apps/web
 
 如果采用轻量实现，也可以先把后端和页面放在同一个 `apps/web` 中，等复杂度上升后再拆分。
 
-### 3. macOS App
+### 3. 桌面包装 App 与 macOS App
 
-macOS App 可以先作为 Web UI 的桌面包装。
+桌面端可以先把 Web UI 包装为 Tauri / Electron 应用，再在规则稳定后建设更原生的 SwiftUI macOS App。
 
 推荐策略：
 
 - 第一阶段优先复用本地 Web UI 或本地 Python 服务。
-- macOS 层负责文件夹选择、权限授权、窗口、菜单、通知和应用打包。
+- 桌面层负责文件夹选择、权限授权、窗口、菜单、通知和应用打包。
 - 核心扫描、命名、sidecar、回滚和归档规则仍由 Python core 或共享核心提供。
 
 macOS 原生 SwiftUI 可以作为后续选项，但不应在核心规则尚未稳定时提前重写全部逻辑。
+
+macOS 原生 App 与 Tauri / Electron 桌面包装 App 的详细技术设计见 [09-macos-desktop-app-architecture.md](./09-macos-desktop-app-architecture.md)。
 
 ### 4. iOS SwiftUI App
 
@@ -103,7 +105,7 @@ contracts
     └── archive-plan-basic.json
 ```
 
-当前阶段可以先不生成这些文件，但后续实现 Web UI 或 SwiftUI 前应补齐。
+当前阶段可以先不生成这些文件，但后续实现桌面包装 App、macOS 原生 App 或 SwiftUI iOS App 前应补齐。
 
 共享契约必须覆盖：
 
@@ -180,12 +182,11 @@ macOS App 会引入签名、公证、权限和沙盒问题。
 
 当前阶段不实施：
 
-- `apps/web` 目录。
 - `apps/macos` 目录。
+- `apps/desktop` 目录。
 - `apps/ios` 目录。
 - `contracts` 目录。
 - Swift Package。
-- Web API。
 - macOS 打包。
 - iOS 文件访问。
 

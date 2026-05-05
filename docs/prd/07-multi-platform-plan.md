@@ -2,13 +2,14 @@
 
 ## 目标
 
-本项目长期希望同时支持三类使用入口：
+本项目长期希望同时支持四类使用入口：
 
 - Python 脚本：面向当前个人工作流，作为最直接、最稳定的自动化入口。
 - Web UI：面向电脑端可视化操作，降低命令行使用成本。
+- 桌面 / macOS App：面向桌面端目录授权、Finder 集成和打包分发场景，包含 Tauri / Electron 包装和 SwiftUI 原生路线。
 - 原生 iOS App：面向未来移动端照片管理和外部存储访问场景。
 
-当前阶段只做计划设计，不实现新的图形界面、macOS App 或 iOS App。当前可交付版本仍以 Python 脚本为主。
+当前可交付版本以 Python 核心和脚本入口为权威实现，并已提供本地 Web UI。桌面包装 App、macOS 原生 App 和 iOS App 仍处于设计阶段，不在当前代码实现范围内。
 
 ## 产品路线
 
@@ -17,9 +18,9 @@
 ```text
 第一步：继续稳定 Python 核心逻辑和脚本入口
         ↓
-第二步：增加本地 Web UI，复用 Python application 层
+第二步：增加本地 Web UI，复用 Python application 层（已具备本地版本）
         ↓
-第三步：将 Web UI 或本地服务包装为 macOS App
+第三步：将 Web UI 或本地服务包装为桌面 App / macOS App
         ↓
 第四步：在规则稳定后建设原生 SwiftUI iOS App
 ```
@@ -76,6 +77,8 @@ macOS App 的重点不在于重新实现业务规则，而在于改善这些体�
 
 macOS App 必须遵守当前核心规则：不写 RAW/DNG 元数据，不绕过 dry-run，不破坏 `.metadata.json.original_name` 的不可变性。
 
+macOS 原生 App 与 Tauri / Electron 桌面包装 App 的详细产品设计见 [08-macos-desktop-app-design.md](./08-macos-desktop-app-design.md)。
+
 ## iOS App
 
 iOS App 是长期方向，建议在核心规则和数据契约稳定后再实现。
@@ -115,8 +118,10 @@ iOS 端需要单独处理：
 ├── apps
 │   ├── web
 │   │   └── Web UI
+│   ├── desktop
+│   │   └── Tauri / Electron 桌面包装 App
 │   ├── macos
-│   │   └── macOS App 包装或原生入口
+│   │   └── SwiftUI 原生 macOS App
 │   └── ios
 │       └── SwiftUI iOS App
 ├── contracts
@@ -130,7 +135,7 @@ iOS 端需要单独处理：
 
 ## 跨端一致性原则
 
-无论入口是脚本、Web UI、macOS App 还是 iOS App，都必须保持一致：
+无论入口是脚本、Web UI、桌面包装 App、macOS 原生 App 还是 iOS App，都必须保持一致：
 
 - `{date}` 只能来自照片元数据，读取失败必须报错，不生成依赖日期的目标文件名。
 - 默认命名模板保持 `{date:YYYYMMDD}-{title}-{date:HHMMSS}_{original}`。
@@ -143,10 +148,10 @@ iOS 端需要单独处理：
 
 ## 不做什么
 
-当前计划阶段不做：
+当前桌面 / macOS / iOS 计划阶段不做：
 
-- 不实现 Web UI。
 - 不打包 macOS App。
+- 不实现 Tauri / Electron 桌面包装 App。
 - 不实现 iOS App。
 - 不接入 Capture One。
 - 不把 Python 核心逻辑迁移到 Swift。

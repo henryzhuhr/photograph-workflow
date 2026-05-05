@@ -9,9 +9,10 @@ Photograph Workflow 是一个面向个人摄影工作流的照片文件管理项
 当前交付目标：
 
 - 使用 `uv` 管理的 Python 脚本。
+- 提供本地 Web UI，复用 Python application 层和结构化计划对象。
 - 支持本地 RAW/DNG 扫描、元数据读取、批量重命名计划、重命名执行、回滚和归档计划。
 - 当前版本以 Lightroom 工作流中的 sidecar 行为为主。
-- 当前没有图形界面，但核心设计必须为未来电脑 Web 端、macOS 端和 iOS 端应用保留空间。
+- 当前没有桌面包装 App、macOS 原生 App 或 iOS App，但核心设计必须为未来桌面端和移动端应用保留空间。
 
 本项目以文档驱动开发。除非是非常明确的小型机械性修复，否则不要实现 PRD/TDD 中尚未描述的行为。
 
