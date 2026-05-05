@@ -40,7 +40,7 @@ uv run uvicorn apps.web.backend.server:app --reload --port 8000
 cd apps/web/frontend && npm run dev
 ```
 
-打开 `http://localhost:5173`，前端开发服务器会自动把 `/api` 请求代理到后端 `8000` 端口。
+打开 `http://localhost:51173`，前端开发服务器会自动把 `/api` 请求代理到后端 `8000` 端口。
 
 **生产模式**（单进程）：
 
@@ -57,7 +57,7 @@ uv run uvicorn apps.web.backend.server:app --port 8000
 docker compose up --build
 ```
 
-打开 `http://localhost:8000`。镜像包含前端构建产物和后端服务，不依赖本地 Node.js 或 Python 环境。
+打开 `http://localhost:51173`。镜像只对宿主机暴露这个前端访问端口；容器内部仍由后端服务同时承载前端静态文件和 `/api`。
 
 ### 功能页面
 

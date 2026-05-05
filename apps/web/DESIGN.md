@@ -3,38 +3,28 @@
 ## Overall Layout
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│  Photograph Workflow                              [EN|中文] │ ← Header
-├─────────────────────────────────────────────────────────────┤
-│  Directory: [Select a workspace... ▾]  [/custom/path     ]  │ ← Workspace Bar
-├─────────────────────────────────────────────────────────────┤
-│  [Scan] [Rename] [Rollback] [Archive] [Workspaces]          │ ← Tab Bar
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  ┌─ Panel Content ───────────────────────────────────────┐ │
-│  │                                                        │ │
-│  │  h2: Page Title                                        │ │
-│  │                                                        │ │
-│  │  [input: path  ] [input: option] [checkbox]            │ │ ← Form Row
-│  │  [btn: Primary ] [btn: Danger (conditional)]           │ │ ← Action Row
-│  │                                                        │ │
-│  │  ⚠ Warning / Error alerts                              │ │ ← Alerts
-│  │                                                        │ │
-│  │  ┌─ Summary Cards ──────────────────────────────────┐ │ │
-│  │  │  42          12             3                    │ │ │
-│  │  │  TOTAL       RAW/DNG       SIDECARS             │ │ │
-│  │  └──────────────────────────────────────────────────┘ │ │
-│  │                                                        │ │
-│  │  ┌─ Data Table ─────────────────────────────────────┐ │ │
-│  │  │  Source          │ Target          │ Role │ Stat │ │ │
-│  │  │  ─────────────── │ ─────────────── │ ──── │ ──── │ │ │
-│  │  │  /photos/001.ARW │ /p/2026-001.ARW │ raw  │ pend │ │ │
-│  │  │  /photos/001.XMP │ /p/2026-001.XMP │ side │ pend │ │ │
-│  │  └──────────────────────────────────────────────────┘ │ │
-│  └────────────────────────────────────────────────────────┘ │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│  Photograph Workflow              [status] [Language ▾]      │
+├──────────────────────────────────────────────────────────────┤
+│  Directory                                                   │
+│  /Users/example/Photograph-Raw                               │
+│                       [Select workspace ▾] [Choose] [path]   │
+├──────────────────────────────────────────────────────────────┤
+│ ┌────────────────┐ ┌───────────────────────────────────────┐ │
+│ │ ● 01 Scan      │ │ Current Step                          │ │
+│ │ │              │ │ Rename                                │ │
+│ │ ● 02 Rename    │ ├───────────────────────────────────────┤ │
+│ │ │              │ │ Panel content                         │ │
+│ │ ● 03 Archive   │ │ - configuration                       │ │
+│ │ │              │ │ - preview summary                     │ │
+│ │ ● 04 Rollback  │ │ - issue list                          │ │
+│ │ │              │ │ - focused table/detail                │ │
+│ │ ● 05 Workspace │ │                                       │ │
+│ └────────────────┘ └───────────────────────────────────────┘ │
+└──────────────────────────────────────────────────────────────┘
 ```
+
+The UI is workflow-first. Navigation should express the operational order instead of presenting unrelated feature tabs.
 
 ## Design Tokens
 
@@ -42,7 +32,7 @@
 
 | Token | Value | Usage |
 |-------|-------|-------|
-| `--bg` | `#f5f5f5` | Page background |
+| `--bg` | `#f4f5f7` | Page background |
 | `--surface` | `#ffffff` | Card / panel / table background |
 | `--border` | `#e0e0e0` | Borders, secondary buttons |
 | `--text` | `#333333` | Primary text |
@@ -79,7 +69,7 @@
 |-------|-------|-------|
 | Page padding | `0 16px 48px` | App container |
 | Header padding | `24px 0 12px` | Title area |
-| Tab bar | `8px 20px` per tab, `4px` gap | Navigation |
+| Workflow nav | `10px` internal padding, `8px` step gap | Navigation |
 | Panel padding | `24px` | Content area inside border |
 | Form row gap | `12px` | Between form fields |
 | Section margin | `16px` (top) `20px` (bottom) | Result sections |
@@ -107,8 +97,8 @@
 ```
 
 - Left: "Photograph Workflow" (h1, semi-bold)
-- Right: Language toggle button (`EN` / `中文`)
-- Toggle button: outlined, small (4px 12px), hover highlights border in `--primary`
+- Right: status pill and language select
+- Language must use a select/dropdown, not a two-language toggle, so additional locales can be added later without changing the control pattern
 
 ### 2. Workspace Bar (`App.vue`)
 
@@ -121,21 +111,31 @@
 
 - Left label: "DIRECTORY:" in uppercase, small, secondary color
 - Select dropdown: 260–400px wide, lists all saved workspaces (format: `Name — /path`), plus a "— Custom path —" option
+- "Choose Local Directory" switches to custom path mode and focuses the path input
 - When "Custom path" selected: text input appears for manual path entry (monospace, 300px+ fluid)
 - Right area: shows the resolved path in monospace, or a hint message if none selected
 - States: Loading (shows "Loading..."), Empty (shows "Add a workspace below or enter a path."), Filled (shows resolved path)
+- Browser and Docker deployments cannot safely auto-open a host system directory chooser without user action. Native directory authorization belongs in the future macOS App layer.
 
-### 3. Tab Bar (`App.vue`)
+### 3. Workflow Navigation (`App.vue`)
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  ═══Scan══  ──Rename──  ──Rollback──  ──Archive──  ──Wsp──│
+│  ● 01 Scan                                                   │
+│  │                                                           │
+│  ● 02 Rename                                                 │
+│  │                                                           │
+│  ● 03 Archive                                                │
+│  │                                                           │
+│  ● 04 Rollback                                               │
+│  │                                                           │
+│  ● 05 Workspaces                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-- Horizontal row of 5 tab buttons
-- Active tab: blue text + blue bottom border (2px), rests on the container border
-- Inactive tab: gray text, transparent bottom border
+- Sidebar timeline on desktop, compact grid on mobile
+- Active step: light blue background, blue border, filled timeline dot
+- Inactive step: neutral text, transparent border
 - Hover: darkens to `--text` color
 
 ### 4. Panel (common wrapper)
@@ -198,13 +198,14 @@ Each tab renders into a white panel with border and 24px padding.
 └──────────────────────────────────────────────────────────┘
 ```
 
-- Form row: path input + template input + strict checkbox
+- Configuration grid: path input + template input + strict checkbox
 - Action row: Dry Run (primary blue) + Execute Rename (danger red, conditional)
 - Execute button only appears when dry-run has items and no errors
-- Confirmation: browser `confirm()` dialog before executing
-- Summary: 2 KPI cards
+- Execute button is disabled if path/template/strict changed after the latest dry-run
+- Confirmation: app modal before executing, not browser `confirm()`
+- Summary: total files, RAW files, sidecars, metadata directories
 - Alerts: warnings (yellow) and errors (red)
-- Table: source → target mapping with role and status badges
+- Table: current file name → planned file name, with full directory path shown as secondary detail
 
 ### 7. Rollback Panel
 

@@ -54,9 +54,10 @@ function confirmAndExecute() {
 <template>
   <div class="panel">
     <h2>{{ t('rollback.title') }}</h2>
-    <p style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 16px">
-      {{ t('rollback.description') }}
-    </p>
+    <section class="stage-note">
+      <strong>{{ t('rollback.guideTitle') }}</strong>
+      <span>{{ t('rollback.guideBody') }}</span>
+    </section>
 
     <div class="form-row">
       <div class="form-group">
@@ -128,3 +129,21 @@ function confirmAndExecute() {
     </div>
   </div>
 </template>
+
+<style scoped>
+.stage-note {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-subtle);
+  padding: 12px 14px;
+  margin-bottom: 16px;
+}
+
+.stage-note span {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+</style>

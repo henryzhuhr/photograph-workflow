@@ -3,5 +3,5 @@ services:
     build: .
     container_name: photograph-workflow
     ports:
-      - "8000:8000"
+      - "127.0.0.1:51173:8000"
     restart: unless-stopped
