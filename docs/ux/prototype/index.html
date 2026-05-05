@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Photograph Workflow App UX Prototype</title>
+    <title>Photograph Workflow 应用 UX 原型</title>
     <style>
       :root,
       :root[data-theme="cobalt"] {
@@ -285,7 +285,7 @@
         border-radius: 999px;
         background: var(--accent);
         color: #fff;
-        content: "Selected";
+        content: "已选择";
         font-size: 11px;
         font-weight: 760;
         margin-top: 10px;
@@ -527,6 +527,7 @@
       }
 
       .screen {
+        position: relative;
         overflow: hidden;
         min-height: 820px;
         border-radius: 18px;
@@ -607,6 +608,56 @@
         font-weight: 760;
       }
 
+      .settings-group {
+        padding: 14px 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .settings-group:last-child {
+        border-bottom: 0;
+        padding-bottom: 0;
+      }
+
+      .settings-group h4 {
+        margin: 0 0 10px;
+        font-size: 13px;
+      }
+
+      .setting-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 12px;
+        align-items: center;
+        padding: 8px 0;
+      }
+
+      .setting-row strong {
+        display: block;
+        font-size: 13px;
+      }
+
+      .setting-row span {
+        display: block;
+        margin-top: 2px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .setting-value {
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: var(--panel-soft);
+        color: var(--ink);
+        padding: 6px 9px;
+        font-size: 12px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      .setting-value.locked {
+        color: var(--accent);
+      }
+
       .project-bar {
         display: grid;
         grid-template-columns: minmax(0, 1fr) auto;
@@ -646,6 +697,8 @@
 
       .sidebar {
         border-right: 1px solid var(--line);
+        display: flex;
+        flex-direction: column;
       }
 
       .inspector {
@@ -717,13 +770,53 @@
       }
 
       .utility-link {
-        margin-top: 20px;
+        display: grid;
+        gap: 8px;
+        margin-top: auto;
         border-top: 1px solid var(--line);
         padding-top: 14px;
       }
 
+      .utility-link .button {
+        width: 100%;
+        text-align: left;
+      }
+
+      .utility-link .button.active {
+        border-color: var(--accent-line);
+        background: var(--accent-soft);
+        color: var(--accent);
+      }
+
       .main {
         padding: 22px;
+      }
+
+      .utility-page[hidden] {
+        display: none;
+      }
+
+      .utility-page {
+        display: grid;
+        gap: 14px;
+      }
+
+      .utility-page-header {
+        border: 1px solid var(--accent-line);
+        border-radius: var(--radius);
+        background: var(--accent-soft);
+        padding: 16px;
+      }
+
+      .utility-page-header h3 {
+        margin: 2px 0 0;
+        font-size: 22px;
+      }
+
+      .utility-page-header p {
+        margin: 6px 0 0;
+        color: var(--muted);
+        font-size: 13px;
       }
 
       .stage-heading {
@@ -864,6 +957,61 @@
         color: var(--muted);
       }
 
+      .rename-directory {
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: var(--panel);
+        overflow: hidden;
+      }
+
+      .rename-directory.nested {
+        background: var(--panel-soft);
+      }
+
+      .rename-directory summary {
+        display: grid;
+        grid-template-columns: 22px minmax(0, 1fr) auto;
+        gap: 10px;
+        align-items: center;
+        cursor: pointer;
+        list-style: none;
+        padding: 12px;
+      }
+
+      .rename-directory summary::-webkit-details-marker {
+        display: none;
+      }
+
+      .rename-directory summary strong {
+        display: block;
+        font-size: 14px;
+      }
+
+      .rename-directory summary small {
+        display: block;
+        margin-top: 2px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .tree-caret {
+        color: var(--muted);
+        font-size: 18px;
+        transform: rotate(0deg);
+        transition: transform 160ms ease;
+      }
+
+      .rename-directory[open] > summary .tree-caret {
+        transform: rotate(90deg);
+      }
+
+      .rename-children {
+        display: grid;
+        gap: 8px;
+        border-top: 1px solid var(--line);
+        padding: 10px 12px 12px 44px;
+      }
+
       .rename-line {
         display: grid;
         grid-template-columns: minmax(0, 1fr) 24px minmax(0, 1.2fr);
@@ -875,6 +1023,11 @@
         padding: 10px;
         font-family: "SF Mono", Menlo, Consolas, monospace;
         font-size: 12px;
+      }
+
+      .rename-line.sidecar {
+        background: var(--panel);
+        color: var(--muted);
       }
 
       .arrow {
@@ -1250,6 +1403,19 @@
         .rename-line {
           grid-template-columns: 1fr;
         }
+
+        .rename-directory summary {
+          grid-template-columns: 22px minmax(0, 1fr);
+        }
+
+        .rename-directory summary .pill {
+          grid-column: 2;
+          justify-self: start;
+        }
+
+        .rename-children {
+          padding-left: 12px;
+        }
       }
     </style>
   </head>
@@ -1257,14 +1423,14 @@
     <main class="page">
       <header class="hero">
         <div>
-          <h1>Photograph Workflow App UX Prototype</h1>
+          <h1>Photograph Workflow 应用 UX 原型</h1>
           <p>
-            这版原型保留桌面端、iPad 端和 iPhone 端三个 App 形态，不设计浏览器产品版本。
-            本地目录选择、最近项目、Reveal in Finder 和长期目录授权由桌面或系统 App 能力提供。
+            这版原型保留桌面端、iPad 端和 iPhone 端三个应用形态，不设计浏览器产品版本。
+            本地目录选择、最近项目、在 Finder 中显示和长期目录授权由桌面或系统应用能力提供。
           </p>
         </div>
-        <nav class="prototype-switch" aria-label="UX views">
-          <a class="is-active" href="#desktop-app" data-view-link="desktop-app">Desktop</a>
+        <nav class="prototype-switch" aria-label="应用视图">
+          <a class="is-active" href="#desktop-app" data-view-link="desktop-app">桌面</a>
           <a href="#ipad-app" data-view-link="ipad-app">iPad</a>
           <a href="#iphone-app" data-view-link="iphone-app">iPhone</a>
         </nav>
@@ -1279,37 +1445,37 @@
         </div>
         <div class="palette-strip">
           <button class="palette-card" type="button" data-theme-option="cobalt">
-            <strong>Neutral Graphite + Soft Cobalt</strong>
+            <strong>中性石墨 + 柔和钴蓝</strong>
             <p>推荐默认。中性文件工作台，蓝色只做操作点缀。</p>
-            <div class="palette-dots palette-cobalt" aria-label="Cobalt palette">
+            <div class="palette-dots palette-cobalt" aria-label="钴蓝配色">
               <span></span><span></span><span></span><span></span><span></span>
             </div>
           </button>
           <button class="palette-card" type="button" data-theme-option="cyan">
-            <strong>Cool Mono + Cyan Accent</strong>
+            <strong>冷调单色 + 青色强调</strong>
             <p>更冷静、技术感更强，适合偏工程化的界面观感。</p>
-            <div class="palette-dots palette-cyan" aria-label="Cyan palette">
+            <div class="palette-dots palette-cyan" aria-label="青色配色">
               <span></span><span></span><span></span><span></span><span></span>
             </div>
           </button>
           <button class="palette-card" type="button" data-theme-option="paper">
-            <strong>Warm Paper + Sage</strong>
+            <strong>暖纸 + 鼠尾草绿</strong>
             <p>更接近摄影工作室和纸质档案，但避免过度复古。</p>
-            <div class="palette-dots palette-paper" aria-label="Paper palette">
+            <div class="palette-dots palette-paper" aria-label="暖纸配色">
               <span></span><span></span><span></span><span></span><span></span>
             </div>
           </button>
           <button class="palette-card" type="button" data-theme-option="olive">
-            <strong>Silver Olive</strong>
+            <strong>银橄榄</strong>
             <p>低饱和、克制，适合长时间批量管理文件。</p>
-            <div class="palette-dots palette-olive" aria-label="Olive palette">
+            <div class="palette-dots palette-olive" aria-label="银橄榄配色">
               <span></span><span></span><span></span><span></span><span></span>
             </div>
           </button>
           <button class="palette-card" type="button" data-theme-option="darkroom">
-            <strong>Low-light Darkroom</strong>
+            <strong>暗房低光</strong>
             <p>低光环境使用，不作为默认主题。</p>
-            <div class="palette-dots palette-darkroom" aria-label="Darkroom palette">
+            <div class="palette-dots palette-darkroom" aria-label="暗房配色">
               <span></span><span></span><span></span><span></span><span></span>
             </div>
           </button>
@@ -1333,41 +1499,41 @@
           </div>
           <div class="annotation-card">
             <strong>安全门槛</strong>
-            <p>重命名、回滚和归档必须先 dry-run，再由用户确认执行。</p>
+            <p>重命名、回滚和归档必须先预演，再由用户确认执行。</p>
           </div>
           <div class="annotation-card">
             <strong>异常分支</strong>
             <p>元数据不可读、文件名冲突、目录授权失效会阻止继续并给出原因。</p>
           </div>
         </div>
-        <div class="journey-map" aria-label="Complete user journey map">
+        <div class="journey-map" aria-label="完整用户旅程图">
           <div class="journey-map-item">
-            <span>Step 1</span>
+            <span>第 1 步</span>
             <strong>准备项目</strong>
             <p>选择并授权已经整理好的照片项目目录。</p>
           </div>
           <div class="journey-map-item">
-            <span>Step 2</span>
+            <span>第 2 步</span>
             <strong>检查素材</strong>
-            <p>确认 RAW/DNG、sidecar、跳过文件和阻塞错误。</p>
+            <p>确认 RAW/DNG、附属文件、跳过文件和阻塞错误。</p>
           </div>
           <div class="journey-map-item">
-            <span>Step 3</span>
+            <span>第 3 步</span>
             <strong>命名规则</strong>
             <p>配置模板、目录标题和占位符，生成可预览规则。</p>
           </div>
           <div class="journey-map-item">
-            <span>Step 4</span>
+            <span>第 4 步</span>
             <strong>执行重命名</strong>
-            <p>检查 dry-run 计划，二次确认后写入文件名。</p>
+            <p>检查预演计划，二次确认后写入文件名。</p>
           </div>
           <div class="journey-map-item">
-            <span>Step 5</span>
+            <span>第 5 步</span>
             <strong>后期检查点</strong>
-            <p>进入 Lightroom 后期，App 不接管修图和 catalog。</p>
+            <p>进入 Lightroom 后期，应用不接管修图和目录库。</p>
           </div>
           <div class="journey-map-item">
-            <span>Step 6</span>
+            <span>第 6 步</span>
             <strong>归档</strong>
             <p>复制推荐压缩包名或执行 ZIP 归档计划。</p>
           </div>
@@ -1377,7 +1543,7 @@
       <section class="section" id="desktop-app">
         <div class="section-title">
           <div>
-            <h2>Desktop App：本地文件工作台</h2>
+            <h2>桌面应用：本地文件工作台</h2>
             <p>面向 macOS / Tauri / Electron 桌面应用，强调系统目录选择、Finder 集成和本地文件安全确认。</p>
           </div>
         </div>
@@ -1390,27 +1556,25 @@
                 <span>Photograph Workflow</span>
               </div>
               <div class="top-actions">
-                <span class="status" id="desktopWorkflowStatus">Ready for rename</span>
-                <button class="button">Language</button>
-                <button class="button">Settings</button>
+                <span class="status" id="desktopWorkflowStatus">已准备重命名</span>
               </div>
             </div>
 
             <div class="project-bar">
               <div>
-                <div class="label">Current project</div>
+                <div class="label">当前项目</div>
                 <div class="path">/Users/me/Photograph-Raw/Travel/Shanghai</div>
               </div>
               <div class="project-actions">
-                <button class="button primary">Choose folder</button>
-                <button class="button">Recent projects</button>
-                <button class="button">Reveal in Finder</button>
+                <button class="button primary">选择目录</button>
+                <button class="button">最近项目</button>
+                <button class="button">在 Finder 中显示</button>
               </div>
             </div>
 
             <div class="desktop-workbench">
               <aside class="sidebar">
-                <div class="label">Workflow</div>
+                <div class="label">工作流</div>
                 <div class="step-list">
                   <div class="step done" data-journey-step="prepare" role="button" tabindex="0">
                     <div class="step-dot">1</div>
@@ -1418,7 +1582,7 @@
                   </div>
                   <div class="step done" data-journey-step="scan" role="button" tabindex="0">
                     <div class="step-dot">2</div>
-                    <div><strong>检查素材</strong><span>扫描 RAW 与 sidecar</span></div>
+                    <div><strong>检查素材</strong><span>扫描 RAW 与附属文件</span></div>
                   </div>
                   <div class="step active" data-journey-step="rename" role="button" tabindex="0">
                     <div class="step-dot">3</div>
@@ -1430,7 +1594,7 @@
                   </div>
                   <div class="step" data-journey-step="postprocess" role="button" tabindex="0">
                     <div class="step-dot">5</div>
-                    <div><strong>Lightroom 后期</strong><span>流程 checkpoint</span></div>
+                    <div><strong>Lightroom 后期</strong><span>流程检查点</span></div>
                   </div>
                   <div class="step" data-journey-step="archive" role="button" tabindex="0">
                     <div class="step-dot">6</div>
@@ -1438,42 +1602,44 @@
                   </div>
                 </div>
                 <div class="utility-link">
-                  <button class="button">Safety center</button>
+                  <button class="button" type="button" data-utility-page="settings" aria-pressed="false">设置</button>
+                  <button class="button" type="button" data-utility-page="safety" aria-pressed="false">安全中心</button>
                 </div>
               </aside>
 
               <section class="main">
+                <div data-desktop-content="workflow">
                 <div class="stage-heading">
                   <div>
-                    <div class="label" id="desktopStepLabel">Step 3</div>
+                    <div class="label" id="desktopStepLabel">第 3 步</div>
                     <h3 id="desktopStepTitle">命名规则</h3>
                     <p id="desktopStepDescription">模板对整个项目生效，目录标题可以按照片目录覆盖。同一目录内所有照片必须遵守同一规范。</p>
                   </div>
                   <button class="button primary" id="desktopPrimaryAction" type="button" data-journey-next>
-                    Generate plan
+                    生成计划
                   </button>
                 </div>
 
                 <div class="panel panel-pad journey-panel" aria-live="polite">
                   <div>
-                    <div class="label">User journey</div>
+                    <div class="label">用户旅程</div>
                     <strong id="journeyTitle">命名规则确认</strong>
                     <p id="journeyBody">点击左侧流程阶段可以查看每一步的用户意图、系统反馈和下一步动作。</p>
                   </div>
                   <div class="journey-actions">
                     <span class="pill info" id="journeyUserAction">用户确认模板</span>
-                    <span class="pill ready" id="journeySystemResponse">系统生成 dry-run 计划</span>
+                    <span class="pill ready" id="journeySystemResponse">系统生成预演计划</span>
                   </div>
                 </div>
 
                 <div class="split-demo">
                   <div class="panel panel-pad template-box">
                     <div>
-                      <div class="label">Template</div>
+                      <div class="label">命名模板</div>
                       <div class="input-like">{date:YYYYMMDD}-{title}-{date:HHMMSS}_{original}</div>
                     </div>
                     <div>
-                      <div class="label">Insert placeholders</div>
+                      <div class="label">插入占位符</div>
                       <div class="chip-row" style="margin-top: 8px">
                         <span class="chip">{date:YYYYMMDD}</span>
                         <span class="chip">{title}</span>
@@ -1484,28 +1650,28 @@
                     <div class="preview-sample">
                       <div class="sample-thumb"></div>
                       <div>
-                        <div class="label" style="color: #9fb1c7">Live example</div>
+                        <div class="label" style="color: #9fb1c7">实时示例</div>
                         <div class="path" style="color: white">20260101-上海东方明珠-080001_DSC00000.ARW</div>
                       </div>
                     </div>
                   </div>
 
                   <div class="panel panel-pad">
-                    <div class="label">Directory titles</div>
+                    <div class="label">目录标题</div>
                     <div class="directory-list">
                       <div class="directory-row">
                         <div>
                           <strong>20260101-上海东方明珠</strong>
-                          <small>title: 上海东方明珠</small>
+                          <small>标题：上海东方明珠</small>
                         </div>
-                        <span class="pill ready">Ready</span>
+                        <span class="pill ready">就绪</span>
                       </div>
                       <div class="directory-row">
                         <div>
                           <strong>20260101-HongKong_Central_Market</strong>
-                          <small>title: HongKong_Central_Market</small>
+                          <small>标题：HongKong_Central_Market</small>
                         </div>
-                        <span class="pill warn">Warning</span>
+                        <span class="pill warn">警告</span>
                       </div>
                     </div>
                   </div>
@@ -1514,48 +1680,234 @@
                 <div class="panel panel-pad">
                   <div class="stage-heading" style="margin-bottom: 12px">
                     <div>
-                      <div class="label">Rename preview</div>
-                      <h3 style="font-size: 18px">按目录预览变更</h3>
+                      <div class="label">重命名预览</div>
+                      <h3 style="font-size: 18px">按目录树预览变更</h3>
                     </div>
-                    <span class="pill info">839 files</span>
+                    <span class="pill info">839 个文件</span>
                   </div>
-                  <div class="rename-plan">
-                    <div class="rename-line">
-                      <span>DSC00000.ARW</span>
-                      <span class="arrow">→</span>
-                      <span>20260101-上海东方明珠-080001_DSC00000.ARW</span>
+                  <div class="rename-plan" aria-label="重命名目录树预览">
+                    <details class="rename-directory" open>
+                      <summary>
+                        <span class="tree-caret">›</span>
+                        <div>
+                          <strong>20260101-上海东方明珠</strong>
+                          <small>2 个 RAW / 2 个同名附属文件</small>
+                        </div>
+                        <span class="pill ready">无冲突</span>
+                      </summary>
+                      <div class="rename-children">
+                        <div class="rename-line">
+                          <span>DSC00000.ARW</span>
+                          <span class="arrow">→</span>
+                          <span>20260101-上海东方明珠-080001_DSC00000.ARW</span>
+                        </div>
+                        <div class="rename-line sidecar">
+                          <span>DSC00000.XMP</span>
+                          <span class="arrow">→</span>
+                          <span>20260101-上海东方明珠-080001_DSC00000.XMP</span>
+                        </div>
+                        <div class="rename-line">
+                          <span>DSC00001.ARW</span>
+                          <span class="arrow">→</span>
+                          <span>20260101-上海东方明珠-080002_DSC00001.ARW</span>
+                        </div>
+                        <div class="rename-line sidecar">
+                          <span>DSC00001.JPG</span>
+                          <span class="arrow">→</span>
+                          <span>20260101-上海东方明珠-080002_DSC00001.JPG</span>
+                        </div>
+                      </div>
+                    </details>
+                    <details class="rename-directory">
+                      <summary>
+                        <span class="tree-caret">›</span>
+                        <div>
+                          <strong>20260101-HongKong_Central_Market</strong>
+                          <small>含 1 个子目录 / 3 个 RAW / 2 个同名附属文件</small>
+                        </div>
+                        <span class="pill warn">可展开检查</span>
+                      </summary>
+                      <div class="rename-children">
+                        <details class="rename-directory nested" open>
+                          <summary>
+                            <span class="tree-caret">›</span>
+                            <div>
+                              <strong>VictoriaPeak</strong>
+                              <small>1 个 DNG / 1 个同名 JPEG</small>
+                            </div>
+                            <span class="pill ready">就绪</span>
+                          </summary>
+                          <div class="rename-children">
+                            <div class="rename-line">
+                              <span>DJI_00000.DNG</span>
+                              <span class="arrow">→</span>
+                              <span>20260101-VictoriaPeak-080003_DJI_00000.DNG</span>
+                            </div>
+                            <div class="rename-line sidecar">
+                              <span>DJI_00000.JPG</span>
+                              <span class="arrow">→</span>
+                              <span>20260101-VictoriaPeak-080003_DJI_00000.JPG</span>
+                            </div>
+                          </div>
+                        </details>
+                        <div class="rename-line">
+                          <span>DSC00002.ARW</span>
+                          <span class="arrow">→</span>
+                          <span>20260101-HongKong_Central_Market-080004_DSC00002.ARW</span>
+                        </div>
+                      </div>
+                    </details>
+                  </div>
+                </div>
+                </div>
+
+                <div class="utility-page" data-desktop-content="settings" hidden>
+                  <div class="utility-page-header">
+                    <div>
+                      <div class="label">辅助页面</div>
+                      <h3>设置</h3>
+                      <p>设置不改变当前项目阶段，只影响默认值、显示方式和安全策略。语言也归入这里统一管理。</p>
                     </div>
-                    <div class="rename-line">
-                      <span>DSC00000.XMP</span>
-                      <span class="arrow">→</span>
-                      <span>20260101-上海东方明珠-080001_DSC00000.XMP</span>
+                  </div>
+                  <div class="settings-group">
+                    <h4>通用</h4>
+                    <div class="setting-row">
+                      <div>
+                        <strong>语言</strong>
+                        <span>后续支持多语言，不做二选一切换。</span>
+                      </div>
+                      <span class="setting-value">中文</span>
                     </div>
-                    <div class="rename-line">
-                      <span>DJI_00000.DNG</span>
-                      <span class="arrow">→</span>
-                      <span>20260101-中环街市-080003_DJI_00000.DNG</span>
+                    <div class="setting-row">
+                      <div>
+                        <strong>主题</strong>
+                        <span>复用顶部配色方案，并保存为应用偏好。</span>
+                      </div>
+                      <span class="setting-value">柔和钴蓝</span>
+                    </div>
+                  </div>
+                  <div class="settings-group">
+                    <h4>工作流默认值</h4>
+                    <div class="setting-row">
+                      <div>
+                        <strong>命名模板</strong>
+                        <span>{date:YYYYMMDD}-{title}-{date:HHMMSS}_{original}</span>
+                      </div>
+                      <span class="setting-value locked">已锁定</span>
+                    </div>
+                    <div class="setting-row">
+                      <div>
+                        <strong>后期软件配置</strong>
+                        <span>当前版本只支持 Lightroom 附属文件行为。</span>
+                      </div>
+                      <span class="setting-value">Lightroom</span>
+                    </div>
+                    <div class="setting-row">
+                      <div>
+                        <strong>附属文件策略</strong>
+                        <span>同名主干的 XMP / ACR / JPEG 跟随 RAW/DNG。</span>
+                      </div>
+                      <span class="setting-value">同名主干</span>
+                    </div>
+                  </div>
+                  <div class="settings-group">
+                    <h4>归档</h4>
+                    <div class="setting-row">
+                      <div>
+                        <strong>归档命名</strong>
+                        <span>推荐名称自动追加归档时间戳。</span>
+                      </div>
+                      <span class="setting-value">时间戳</span>
+                    </div>
+                    <div class="setting-row">
+                      <div>
+                        <strong>排除规则</strong>
+                        <span>默认规则可扩展，当前原型只展示入口。</span>
+                      </div>
+                      <span class="setting-value">默认</span>
+                    </div>
+                  </div>
+                  <div class="settings-group">
+                    <h4>安全规则</h4>
+                    <div class="setting-row">
+                      <div>
+                        <strong>强制预演</strong>
+                        <span>重命名、回滚和归档执行前必须先生成计划。</span>
+                      </div>
+                      <span class="setting-value locked">始终开启</span>
+                    </div>
+                    <div class="setting-row">
+                      <div>
+                        <strong>原始文件名记录</strong>
+                        <span>.metadata.json 中的 original_name 不允许被覆盖。</span>
+                      </div>
+                      <span class="setting-value locked">不可变</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="utility-page" data-desktop-content="safety" hidden>
+                  <div class="utility-page-header">
+                    <div>
+                      <div class="label">辅助页面</div>
+                      <h3>安全中心</h3>
+                      <p>安全中心用于解释和检查会影响文件可靠性的规则，不承载日常主流程步骤。</p>
+                    </div>
+                  </div>
+                  <div class="settings-group">
+                    <h4>执行保护</h4>
+                    <div class="setting-row">
+                      <div>
+                        <strong>预演优先</strong>
+                        <span>重命名、回滚和归档都必须先展示计划，再允许确认执行。</span>
+                      </div>
+                      <span class="setting-value locked">强制</span>
+                    </div>
+                    <div class="setting-row">
+                      <div>
+                        <strong>阻塞错误</strong>
+                        <span>元数据不可读、文件名冲突、目录不可写会阻止继续。</span>
+                      </div>
+                      <span class="setting-value">0 个</span>
+                    </div>
+                  </div>
+                  <div class="settings-group">
+                    <h4>可追踪性</h4>
+                    <div class="setting-row">
+                      <div>
+                        <strong>原始文件名不可变</strong>
+                        <span>首次写入 `.metadata.json` 后，original_name 不会随再次重命名改变。</span>
+                      </div>
+                      <span class="setting-value locked">已保护</span>
+                    </div>
+                    <div class="setting-row">
+                      <div>
+                        <strong>附属文件同步</strong>
+                        <span>只同步同名主干的 XMP / ACR / JPEG，避免误改无关文件。</span>
+                      </div>
+                      <span class="setting-value">同名主干</span>
                     </div>
                   </div>
                 </div>
               </section>
 
               <aside class="inspector">
-                <h4>Project summary</h4>
+                <h4>项目摘要</h4>
                 <div class="inspector-card">
                   <div class="inspector-grid">
-                    <div class="mini-stat"><strong>18</strong><span>Photo dirs</span></div>
+                    <div class="mini-stat"><strong>18</strong><span>照片目录</span></div>
                     <div class="mini-stat"><strong>420</strong><span>RAW/DNG</span></div>
-                    <div class="mini-stat"><strong>419</strong><span>Sidecar</span></div>
-                    <div class="mini-stat"><strong>0</strong><span>Errors</span></div>
+                    <div class="mini-stat"><strong>419</strong><span>附属文件</span></div>
+                    <div class="mini-stat"><strong>0</strong><span>错误</span></div>
                   </div>
                 </div>
                 <div class="inspector-card next-step">
-                  <div class="label">Next action</div>
-                  <strong id="desktopNextAction">Generate rename plan</strong>
-                  <p class="caption" id="desktopNextHint">模板确认后进入 dry-run，不会修改任何文件。</p>
+                  <div class="label">下一步</div>
+                  <strong id="desktopNextAction">生成重命名计划</strong>
+                  <p class="caption" id="desktopNextHint">模板确认后进入预演，不会修改任何文件。</p>
                 </div>
                 <div class="inspector-card">
-                  <div class="label">Local access</div>
+                  <div class="label">本地访问</div>
                   <p class="caption">目录来自系统选择器授权，可保存到最近项目并恢复访问。</p>
                 </div>
               </aside>
@@ -1567,7 +1919,7 @@
       <section class="section" id="ipad-app">
         <div class="section-title">
           <div>
-            <h2>iPad App：触摸友好的双栏工作台</h2>
+            <h2>iPad 应用：触摸友好的双栏工作台</h2>
             <p>保留桌面端项目上下文，但用卡片替代表格，右侧检查面板可以收起。</p>
           </div>
         </div>
@@ -1578,10 +1930,10 @@
               <aside class="ipad-sidebar">
                 <div class="brand">
                   <div class="brand-mark">PW</div>
-                  <span>Workflow</span>
+                  <span>工作流</span>
                 </div>
                 <div style="margin-top: 18px">
-                  <div class="label">Project</div>
+                  <div class="label">项目</div>
                   <div class="path">/Volumes/Photos/Shanghai</div>
                 </div>
                 <div class="step-list">
@@ -1615,17 +1967,17 @@
               <section class="ipad-main">
                 <div class="stage-heading">
                   <div>
-                    <div class="label" id="ipadStepLabel">Step 2</div>
+                    <div class="label" id="ipadStepLabel">第 2 步</div>
                     <h3 id="ipadStepTitle">检查素材</h3>
                     <p id="ipadStepDescription">扫描结果按照片目录组织。文件明细进入目录详情后查看。</p>
                   </div>
                   <button class="button primary" id="ipadPrimaryAction" type="button" data-journey-next>
-                    Scan again
+                    重新扫描
                   </button>
                 </div>
                 <div class="panel panel-pad journey-panel" aria-live="polite">
                   <div>
-                    <div class="label">Touch journey</div>
+                    <div class="label">触摸端旅程</div>
                     <strong id="ipadJourneyTitle">确认素材状态</strong>
                     <p id="ipadJourneyBody">点击左侧阶段，iPad 工作台会切换到对应流程说明。</p>
                   </div>
@@ -1636,31 +1988,31 @@
                 </div>
                 <div class="touch-card">
                   <strong>20260101-上海东方明珠</strong>
-                  <p class="caption">RAW 42 · Sidecar 42 · .metadata.json ready</p>
-                  <span class="pill ready">Ready</span>
+                  <p class="caption">RAW 42 · 附属文件 42 · .metadata.json 已就绪</p>
+                  <span class="pill ready">就绪</span>
                 </div>
                 <div class="touch-card">
                   <strong>20260101-HongKong_Central_Market</strong>
-                  <p class="caption">RAW 31 · Sidecar 30 · one optional JPEG missing</p>
-                  <span class="pill warn">Warning</span>
+                  <p class="caption">RAW 31 · 附属文件 30 · 缺少 1 个可选 JPEG</p>
+                  <span class="pill warn">警告</span>
                 </div>
                 <div class="touch-card">
                   <strong>20260101-中环街市</strong>
-                  <p class="caption">RAW 18 · Sidecar 18 · DJI DNG confirmed</p>
-                  <span class="pill ready">Ready</span>
+                  <p class="caption">RAW 18 · 附属文件 18 · DJI DNG 已确认</p>
+                  <span class="pill ready">就绪</span>
                 </div>
               </section>
 
               <aside class="ipad-inspector">
                 <h4>检查面板</h4>
                 <div class="inspector-card next-step">
-                  <div class="label">Next</div>
+                  <div class="label">下一步</div>
                   <strong id="ipadNextAction">继续：命名规则</strong>
                   <p class="caption" id="ipadNextHint">没有阻塞错误后进入命名模板。</p>
                 </div>
                 <div class="inspector-card">
-                  <div class="label">Risk</div>
-                  <p class="caption">0 blocking errors. Warnings will stay visible until execution.</p>
+                  <div class="label">风险</div>
+                  <p class="caption">0 个阻塞错误。警告会保留到执行前。</p>
                 </div>
               </aside>
             </div>
@@ -1671,8 +2023,8 @@
       <section class="section" id="iphone-app">
         <div class="section-title">
           <div>
-            <h2>iPhone App：单列向导</h2>
-            <p>每次只处理一个阶段，底部固定主按钮，危险操作进入确认页或 sheet。</p>
+            <h2>iPhone 应用：单列向导</h2>
+            <p>每次只处理一个阶段，底部固定主按钮，危险操作进入确认页或弹层。</p>
           </div>
         </div>
 
@@ -1685,7 +2037,7 @@
               </header>
               <div class="progress">
                 <div class="progress-label">
-                  <span id="phoneStepCount">2 / 6</span>
+                  <span id="phoneStepCount">第 2 步 / 共 6 步</span>
                   <strong id="phoneStepTitle">检查素材</strong>
                 </div>
                 <div class="progress-dots">
@@ -1699,9 +2051,9 @@
                 <div class="phone-stage-summary" aria-live="polite">
                   <div class="label">当前阶段</div>
                   <strong id="phoneCurrentStageTitle">检查素材</strong>
-                  <p id="phoneCurrentStageHint">Step 2 / 6 · 用户查看目录状态</p>
+                  <p id="phoneCurrentStageHint">第 2 步 / 6 · 用户查看目录状态</p>
                 </div>
-                <div class="phone-step-strip" aria-label="iPhone workflow steps">
+                <div class="phone-step-strip" aria-label="iPhone 工作流步骤">
                   <button class="phone-step done" type="button" data-journey-step="prepare">
                     <span>1</span>准备
                   </button>
@@ -1733,25 +2085,25 @@
                   <div class="label">素材摘要</div>
                   <div class="phone-metrics" style="margin-top: 10px">
                     <div class="mini-stat"><strong>420</strong><span>RAW/DNG</span></div>
-                    <div class="mini-stat"><strong>419</strong><span>Sidecar</span></div>
+                    <div class="mini-stat"><strong>419</strong><span>附属文件</span></div>
                     <div class="mini-stat"><strong>18</strong><span>目录</span></div>
-                    <div class="mini-stat"><strong>0</strong><span>Error</span></div>
+                    <div class="mini-stat"><strong>0</strong><span>错误</span></div>
                   </div>
                 </div>
                 <div class="phone-card">
                   <strong>20260101-上海东方明珠</strong>
-                  <p class="caption">RAW 42 · Sidecar 42</p>
-                  <span class="pill ready">Ready</span>
+                  <p class="caption">RAW 42 · 附属文件 42</p>
+                  <span class="pill ready">就绪</span>
                 </div>
                 <div class="phone-card">
                   <strong>20260101-HongKong_Central_Market</strong>
-                  <p class="caption">RAW 31 · Sidecar 30</p>
-                  <span class="pill warn">Warning</span>
+                  <p class="caption">RAW 31 · 附属文件 30</p>
+                  <span class="pill warn">警告</span>
                 </div>
                 <div class="phone-card">
                   <strong>20260101-中环街市</strong>
-                  <p class="caption">RAW 18 · DJI DNG confirmed</p>
-                  <span class="pill ready">Ready</span>
+                  <p class="caption">RAW 18 · DJI DNG 已确认</p>
+                  <span class="pill ready">就绪</span>
                 </div>
               </div>
               <div class="phone-bottom">
@@ -1771,87 +2123,89 @@
       const journeyTriggers = document.querySelectorAll("[data-journey-step]");
       const journeyActions = document.querySelectorAll("[data-journey-next]");
       const phoneProgressDots = document.querySelectorAll("[data-phone-progress-dot]");
+      const utilityTriggers = document.querySelectorAll("[data-utility-page]");
+      const desktopContentPages = document.querySelectorAll("[data-desktop-content]");
       const savedTheme = localStorage.getItem("photograph-workflow-theme") || "cobalt";
       const journeyOrder = ["prepare", "scan", "rename", "execute", "postprocess", "archive"];
       let activeJourneyStep = "rename";
 
       const journeyContent = {
         prepare: {
-          label: "Step 1",
+          label: "第 1 步",
           title: "准备项目",
           description: "用户通过系统目录选择器授权照片项目目录。系统记录最近项目，但不直接修改任何文件。",
-          status: "Waiting for folder access",
-          action: "Choose folder",
+          status: "等待目录授权",
+          action: "选择目录",
           journeyTitle: "选择并授权目录",
-          body: "用户从 Finder 或系统目录选择器选择项目根目录。App 校验该目录可读写，并把它保存为最近项目。",
+          body: "用户从 Finder 或系统目录选择器选择项目根目录。应用校验该目录可读写，并把它保存为最近项目。",
           userAction: "用户选择目录",
           systemResponse: "系统保存授权",
-          nextAction: "Scan project",
+          nextAction: "扫描项目",
           nextHint: "目录授权完成后进入素材扫描。"
         },
         scan: {
-          label: "Step 2",
+          label: "第 2 步",
           title: "检查素材",
-          description: "系统递归扫描照片目录，按 RAW/DNG、同 stem sidecar、跳过文件和阻塞错误组织结果。",
-          status: "Scan complete",
-          action: "Review scan",
+          description: "系统递归扫描照片目录，按 RAW/DNG、同名主干附属文件、跳过文件和阻塞错误组织结果。",
+          status: "扫描完成",
+          action: "查看扫描结果",
           journeyTitle: "确认素材状态",
           body: "用户先看目录级摘要，必要时展开问题目录。元数据读取失败会阻止依赖 {date} 的命名。",
           userAction: "用户查看目录状态",
           systemResponse: "系统标记风险",
-          nextAction: "Configure rename",
+          nextAction: "配置命名规则",
           nextHint: "没有阻塞错误后进入命名模板。"
         },
         rename: {
-          label: "Step 3",
+          label: "第 3 步",
           title: "命名规则",
           description: "模板对整个项目生效，目录标题可以按照片目录覆盖。同一目录内所有照片必须遵守同一规范。",
-          status: "Ready for rename",
-          action: "Generate plan",
+          status: "已准备重命名",
+          action: "生成计划",
           journeyTitle: "命名规则确认",
-          body: "用户通过占位符选择模板，按目录检查 title。系统实时展示样例，但真正写入前必须先生成 dry-run。",
+          body: "用户通过占位符选择模板，按目录检查标题。系统实时展示样例，但真正写入前必须先生成预演计划。",
           userAction: "用户确认模板",
-          systemResponse: "系统生成 dry-run",
-          nextAction: "Generate rename plan",
-          nextHint: "模板确认后进入 dry-run，不会修改任何文件。"
+          systemResponse: "系统生成预演计划",
+          nextAction: "生成重命名计划",
+          nextHint: "模板确认后进入预演，不会修改任何文件。"
         },
         execute: {
-          label: "Step 4",
+          label: "第 4 步",
           title: "执行重命名",
-          description: "用户查看 dry-run 计划、sidecar 映射和冲突列表。确认后才会写入 .metadata.json 并修改文件名。",
-          status: "Dry-run plan ready",
-          action: "Confirm execute",
+          description: "用户查看预演计划、附属文件映射和冲突列表。确认后才会写入 .metadata.json 并修改文件名。",
+          status: "预演计划已就绪",
+          action: "确认执行",
           journeyTitle: "确认写入磁盘",
           body: "这一阶段必须让用户明确看到会改哪些文件。执行完成后展示成功、失败和可回滚映射。",
           userAction: "用户二次确认",
           systemResponse: "系统写入结果",
-          nextAction: "Open Lightroom checkpoint",
+          nextAction: "进入 Lightroom 检查点",
           nextHint: "重命名完成后再导入 Lightroom。"
         },
         postprocess: {
-          label: "Step 5",
+          label: "第 5 步",
           title: "Lightroom 后期",
-          description: "这是工作流 checkpoint，不替代 Lightroom。用户完成导入、筛选、评级和修图后回到 App 继续归档。",
-          status: "Waiting for Lightroom",
-          action: "Mark edited",
+          description: "这是工作流检查点，不替代 Lightroom。用户完成导入、筛选、评级和修图后回到应用继续归档。",
+          status: "等待 Lightroom 后期",
+          action: "标记后期完成",
           journeyTitle: "后期软件检查点",
-          body: "App 不读取 Lightroom catalog，也不自动修图。它只提醒用户当前目录已经完成重命名，可以安全进入后期。",
+          body: "应用不读取 Lightroom 目录库，也不自动修图。它只提醒用户当前目录已经完成重命名，可以安全进入后期。",
           userAction: "用户完成修图",
           systemResponse: "系统进入归档",
-          nextAction: "Prepare archive",
+          nextAction: "准备归档",
           nextHint: "后期完成后生成推荐压缩包名称。"
         },
         archive: {
-          label: "Step 6",
+          label: "第 6 步",
           title: "归档",
           description: "用户可以复制推荐压缩包名手动压缩，也可以执行 ZIP 归档计划。归档会打包整个目录并遵守 exclude 规则。",
-          status: "Ready to archive",
-          action: "Copy archive name",
+          status: "已准备归档",
+          action: "复制归档名称",
           journeyTitle: "归档并保留可追踪性",
-          body: "系统推荐带时间戳的压缩包名称。用户可以手动使用 Keka 等工具，也可以走 App 内 ZIP 计划。",
+          body: "系统推荐带时间戳的压缩包名称。用户可以手动使用 Keka 等工具，也可以走应用内压缩计划。",
           userAction: "用户选择归档方式",
           systemResponse: "系统给出归档名",
-          nextAction: "Archive complete",
+          nextAction: "归档完成",
           nextHint: "归档完成后项目进入只读保存状态。"
         }
       };
@@ -1867,6 +2221,18 @@
         if (element) {
           element.textContent = value;
         }
+      }
+
+      function setDesktopContent(page) {
+        desktopContentPages.forEach((content) => {
+          content.hidden = content.dataset.desktopContent !== page;
+        });
+
+        utilityTriggers.forEach((trigger) => {
+          const selected = trigger.dataset.utilityPage === page;
+          trigger.classList.toggle("active", selected);
+          trigger.setAttribute("aria-pressed", String(selected));
+        });
       }
 
       function setJourneyStep(id) {
@@ -1909,10 +2275,10 @@
         setText("ipadJourneySystemResponse", content.systemResponse);
         setText("ipadNextAction", content.nextAction);
         setText("ipadNextHint", content.nextHint);
-        setText("phoneStepCount", `${activeIndex + 1} / ${journeyOrder.length}`);
+        setText("phoneStepCount", `第 ${activeIndex + 1} 步 / 共 ${journeyOrder.length} 步`);
         setText("phoneStepTitle", content.title);
         setText("phoneCurrentStageTitle", content.title);
-        setText("phoneCurrentStageHint", `${content.label} / ${journeyOrder.length} · ${content.userAction}`);
+        setText("phoneCurrentStageHint", `${content.label} / 共 ${journeyOrder.length} 步 · ${content.userAction}`);
         setText("phoneStepDescription", content.description);
         setText("phoneJourneyTitle", content.journeyTitle);
         setText("phoneJourneyBody", content.body);
@@ -1946,7 +2312,12 @@
       });
 
       journeyTriggers.forEach((trigger) => {
-        const activate = () => setJourneyStep(trigger.dataset.journeyStep);
+        const activate = () => {
+          if (trigger.closest("#desktop-app")) {
+            setDesktopContent("workflow");
+          }
+          setJourneyStep(trigger.dataset.journeyStep);
+        };
         trigger.addEventListener("click", activate);
         trigger.addEventListener("keydown", (event) => {
           if (event.key === "Enter" || event.key === " ") {
@@ -1965,6 +2336,13 @@
       });
 
       setJourneyStep(activeJourneyStep);
+      setDesktopContent("workflow");
+
+      utilityTriggers.forEach((trigger) => {
+        trigger.addEventListener("click", () => {
+          setDesktopContent(trigger.dataset.utilityPage);
+        });
+      });
 
       viewLinks.forEach((link) => {
         link.addEventListener("click", (event) => {
