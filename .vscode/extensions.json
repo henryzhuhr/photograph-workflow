@@ -1,0 +1,27 @@
+{
+  "recommendations": [
+    "charliermarsh.ruff",
+    "Vue.volar",
+    "tauri-apps.tauri-vscode",
+    "rust-lang.rust-analyzer",
+    "tamasfe.even-better-toml",
+    "ms-azuretools.vscode-docker",
+    "usernamehw.errorlens",
+    "mhutchie.git-graph",
+    "yzhang.markdown-all-in-one",
+    "bierner.markdown-preview-github-styles",
+    "bierner.markdown-mermaid",
+    "davidanson.vscode-markdownlint",
+    "pkief.material-icon-theme",
+    "github.github-vscode-theme",
+    "ms-python.vscode-pylance",
+    "ms-python.debugpy",
+    "ms-python.python",
+    "ms-python.vscode-python-envs",
+    "jasonnutter.search-node-modules",
+    "christian-kohler.npm-intellisense"
+  ],
+  "unwantedRecommendations": [
+    "octref.vetur"
+  ]
+}
